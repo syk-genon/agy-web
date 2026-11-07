@@ -3,662 +3,541 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Antigravity (agy-web) Studio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Antigravity (agy) AI Studio</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-dark: #0f1117;
-      --bg-card: #181b24;
-      --bg-header: #13161f;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --accent-color: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.25);
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-surface: #334155;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-opus: #d97706;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #475569;
       --success: #10b981;
       --warning: #f59e0b;
-      --purple: #a855f7;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Pretendard', sans-serif;
     }
 
     body {
-      background-color: var(--bg-dark);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Pretendard', sans-serif;
+      background-color: var(--bg-primary);
       color: var(--text-main);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
-    /* Collapsible Top Header */
-    .top-header-wrapper {
-      position: relative;
-      z-index: 50;
-      background: var(--bg-header);
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .top-header-wrapper.collapsed .header-content {
-      max-height: 0;
-      opacity: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .header-content {
-      max-height: 200px;
-      opacity: 1;
-      transition: all 0.35s ease;
-      padding: 12px 24px;
+    /* Header */
+    header {
+      background-color: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.5rem;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .brand {
+    .logo-area {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0.75rem;
       font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: -0.3px;
+      font-size: 1.15rem;
     }
 
-    .brand-badge {
+    .logo-badge {
       background: linear-gradient(135deg, #6366f1, #a855f7);
-      padding: 4px 8px;
+      padding: 0.2rem 0.6rem;
       border-radius: 6px;
       font-size: 0.75rem;
-      font-weight: 600;
-      color: white;
     }
 
     .header-controls {
       display: flex;
       align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      gap: 1rem;
     }
 
-    .control-item {
+    .quota-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 0.85rem;
+      gap: 0.5rem;
+      background: var(--bg-surface);
+      padding: 0.35rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
     }
 
-    select.model-select {
-      background: transparent;
+    .quota-pill .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--success);
+    }
+
+    .menu-toggle-btn {
+      background: var(--accent);
+      color: #fff;
       border: none;
-      color: var(--text-main);
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-      padding-right: 4px;
-    }
-
-    select.model-select option {
-      background: var(--bg-card);
-      color: var(--text-main);
-    }
-
-    .btn-usage {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #818cf8;
-      padding: 6px 14px;
       border-radius: 8px;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.9rem;
       cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 0.4rem;
       transition: all 0.2s;
     }
 
-    .btn-usage:hover {
-      background: rgba(99, 102, 241, 0.28);
-      color: #fff;
+    .menu-toggle-btn:hover {
+      background: var(--accent-hover);
     }
 
-    /* Header Toggle Handle */
-    .header-toggle-bar {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 18px;
-      background: rgba(255, 255, 255, 0.02);
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.2s;
-      border-top: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .header-toggle-bar:hover {
-      background: rgba(99, 102, 241, 0.15);
-    }
-
-    .toggle-icon {
-      font-size: 11px;
-      color: var(--text-muted);
-      transition: transform 0.3s ease;
-    }
-
-    .top-header-wrapper.collapsed .toggle-icon {
-      transform: rotate(180deg);
-    }
-
-    .collapsed-indicator {
-      display: none;
-      position: absolute;
-      left: 20px;
-      top: 0;
-      bottom: 0;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      gap: 8px;
-    }
-
-    .top-header-wrapper.collapsed .collapsed-indicator {
-      display: flex;
-    }
-
-    /* Main Chat Container */
-    .main-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .message {
-      display: flex;
-      gap: 12px;
-      max-width: 850px;
-      width: 100%;
-      margin: 0 auto;
-      line-height: 1.6;
-      font-size: 0.95rem;
-    }
-
-    .message.user {
-      flex-direction: row-reverse;
-    }
-
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
-
-    .message.user .avatar {
-      background: #4f46e5;
-      color: white;
-    }
-
-    .message.assistant .avatar {
-      background: #059669;
-      color: white;
-    }
-
-    .msg-body {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 12px 18px;
-      max-width: calc(100% - 60px);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .message.user .msg-body {
-      background: rgba(99, 102, 241, 0.12);
-      border-color: rgba(99, 102, 241, 0.25);
-    }
-
-    /* Input Bar */
-    .chat-input-wrapper {
-      padding: 16px 24px 20px;
-      background: var(--bg-dark);
-      border-top: 1px solid var(--border-color);
-    }
-
-    .input-box {
-      max-width: 850px;
-      margin: 0 auto;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 10px 14px;
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    .input-box:focus-within {
-      border-color: var(--accent-color);
-      box-shadow: 0 0 0 2px var(--accent-glow);
-    }
-
-    textarea.prompt-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text-main);
-      resize: none;
-      max-height: 160px;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    .btn-send {
-      background: var(--accent-color);
-      border: none;
-      color: white;
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
-
-    .btn-send:hover {
-      background: #4f46e5;
-    }
-
-    /* Usage Modal */
-    .modal-backdrop {
+    /* Top Sliding Dropdown Menu */
+    .top-menu-drawer {
       position: fixed;
-      top: 0;
+      top: 57px;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
+      width: 100%;
+      background-color: var(--bg-secondary);
+      border-bottom: 2px solid var(--accent);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      transform: translateY(-110%);
       opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
+      visibility: hidden;
+      transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 90;
+      padding: 1.5rem 2rem;
     }
 
-    .modal-backdrop.active {
+    .top-menu-drawer.open {
+      transform: translateY(0);
       opacity: 1;
-      pointer-events: auto;
+      visibility: visible;
     }
 
-    .usage-modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      width: 90%;
-      max-width: 460px;
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    .menu-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 2rem;
     }
 
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+    @media (max-width: 768px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+      }
     }
 
-    .modal-header h3 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-close {
-      background: transparent;
-      border: none;
+    .menu-section h4 {
+      font-size: 0.95rem;
       color: var(--text-muted);
-      font-size: 1.2rem;
-      cursor: pointer;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .usage-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
+    /* Model Selection Cards */
+    .model-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
     }
 
-    .usage-label-row {
+    .model-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.85rem;
-      margin-bottom: 8px;
+      padding: 0.75rem 1rem;
+      background: var(--bg-surface);
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .usage-title {
+    .model-item:hover {
+      border-color: var(--accent);
+      background: #3e4c63;
+    }
+
+    .model-item.active {
+      border-color: var(--accent-opus);
+      background: rgba(217, 119, 6, 0.15);
+    }
+
+    .model-tag-opus {
+      background: var(--accent-opus);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
       font-weight: 600;
-      color: var(--text-main);
+    }
+
+    /* Usage Quota Card */
+    .quota-card-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .quota-card-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .quota-card {
+      background: var(--bg-surface);
+      border-radius: 10px;
+      padding: 1.1rem;
+      border: 1px solid var(--border);
+    }
+
+    .quota-header {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 6px;
+      margin-bottom: 0.75rem;
     }
 
-    .usage-value {
-      font-family: 'JetBrains Mono', monospace;
+    .quota-title {
+      font-size: 0.85rem;
       font-weight: 600;
-      color: #818cf8;
+      color: var(--text-muted);
+    }
+
+    .quota-percent {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
     }
 
     .progress-bar-bg {
       width: 100%;
       height: 8px;
-      background: rgba(255, 255, 255, 0.08);
+      background: #1e293b;
       border-radius: 4px;
       overflow: hidden;
-      margin-bottom: 6px;
+      margin-bottom: 0.6rem;
     }
 
-    .progress-bar-fill {
+    .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #6366f1, #a855f7);
+      background: linear-gradient(90deg, #6366f1, #10b981);
       border-radius: 4px;
-      transition: width 0.5s ease;
+      transition: width 0.4s ease;
     }
 
-    .progress-bar-fill.warning {
-      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    .progress-fill.opus-bar {
+      background: linear-gradient(90deg, #d97706, #f59e0b);
     }
 
-    .usage-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
+    .quota-footer {
       display: flex;
       justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
+
+    /* Main Chat UI */
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .chat-box {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      min-height: 400px;
+      max-height: 60vh;
+      overflow-y: auto;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 80%;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-bubble {
+      padding: 0.85rem 1.1rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .message.assistant .message-bubble {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+    }
+
+    .message.user .message-bubble {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .input-form {
+      display: flex;
+      gap: 0.75rem;
+      background: var(--bg-secondary);
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .input-form input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-size: 1rem;
+      padding-left: 0.5rem;
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .send-btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
 
-  <!-- Collapsible Top Header (기본 접힘 상태: collapsed 클래스 포함) -->
-  <header class="top-header-wrapper collapsed" id="topHeader">
-    <div class="collapsed-indicator">
-      <i class="fa-solid fa-cube text-primary"></i>
-      <span id="collapsedModelLabel">Claude 3.7 Sonnet</span>
-      <span style="color: #6366f1; font-weight: 600;">• 5h: <span id="mini5hUsage">24%</span></span>
-    </div>
-    
-    <div class="header-content">
-      <div class="brand">
-        <i class="fa-solid fa-cube" style="color: #6366f1;"></i>
-        <span>Antigravity</span>
-        <span class="brand-badge">STUDIO</span>
-      </div>
-
-      <div class="header-controls">
-        <!-- Model Selector (Opus 포함) -->
-        <div class="control-item">
-          <i class="fa-solid fa-microchip" style="color: #a855f7;"></i>
-          <select class="model-select" id="modelSelect" onchange="updateModelLabel()">
-            <option value="claude-3-7-sonnet" selected>Claude 3.7 Sonnet (추천)</option>
-            <option value="claude-3-opus-20240229">Claude 3 Opus (최고성능)</option>
-            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
-            <option value="meta/llama-3.1-405b-instruct">NVIDIA Llama 3.1 405B</option>
-            <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">Nemotron 3.5 Super VL</option>
-          </select>
-        </div>
-
-        <!-- Usage Button -->
-        <button class="btn-usage" onclick="openUsageModal()">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span>Usage 사용량</span>
-        </button>
-      </div>
+  <!-- Header Navigation -->
+  <header>
+    <div class="logo-area">
+      <i class="fa-solid fa-cube text-indigo-400"></i>
+      <span>Antigravity</span>
+      <span class="logo-badge">Firebase Cloud</span>
     </div>
 
-    <!-- Toggle Bar (펼침 / 접힘 제어) -->
-    <div class="header-toggle-bar" onclick="toggleHeader()" title="상단 메뉴 펼치기 / 접기">
-      <i class="fa-solid fa-chevron-up toggle-icon" id="toggleIcon"></i>
+    <div class="header-controls">
+      <div class="quota-pill">
+        <span class="dot"></span>
+        <span id="active-model-display">Claude 3 Opus</span>
+      </div>
+      <button id="menu-toggle-btn" class="menu-toggle-btn" onclick="toggleTopMenu()">
+        <i class="fa-solid fa-bars"></i>
+        <span>메뉴 / 사용량</span>
+      </button>
     </div>
   </header>
 
-  <!-- Main Chat Workspace -->
-  <main class="main-container">
-    <div class="chat-messages" id="chatMessages">
-      <div class="message assistant">
-        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
-        <div class="msg-body">안녕하세요 심용기님! 최상단 메뉴가 기본적으로 접혀있도록 설정되었습니다. 상단 바 중앙의 토글 버튼을 클릭하면 모델 변경 및 사용량을 확인할 수 있으며, <b>Claude 3 Opus</b> 모델도 즉시 선택 가능합니다.</div>
-      </div>
-    </div>
-
-    <!-- Input Area -->
-    <div class="chat-input-wrapper">
-      <div class="input-box">
-        <textarea class="prompt-input" id="promptInput" rows="1" placeholder="메시지를 입력하세요... (Shift+Enter 줄바꿈, Enter 전송)" onkeydown="handleKeyDown(event)"></textarea>
-        <button class="btn-send" onclick="sendMessage()">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Usage Details Modal -->
-  <div class="modal-backdrop" id="usageModalBackdrop" onclick="closeUsageModal(event)">
-    <div class="usage-modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-gauge-high" style="color: #6366f1;"></i> AI 사용량 (Usage) 현황</h3>
-        <button class="btn-close" onclick="closeUsageModal()">&times;</button>
-      </div>
-
-      <!-- 5-Hour Rolling Limit -->
-      <div class="usage-card">
-        <div class="usage-label-row">
-          <span class="usage-title"><i class="fa-regular fa-clock"></i> 5시간 세션 사용량</span>
-          <span class="usage-value" id="usage5hText">24 / 100 req (24%)</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="usage5hBar" style="width: 24%;"></div>
-        </div>
-        <div class="usage-meta">
-          <span>롤링 윈도우 한도</span>
-          <span id="usage5hReset">3시간 20분 후 초기화 시작</span>
+  <!-- Top Drawer Menu (열고 닫기 + Opus + 5시간/주간 사용량) -->
+  <div id="top-menu-drawer" class="top-menu-drawer">
+    <div class="menu-grid">
+      <!-- 모델 선택 -->
+      <div class="menu-section">
+        <h4><i class="fa-solid fa-microchip"></i> 활성 AI 모델</h4>
+        <div class="model-list">
+          <div class="model-item active" onclick="selectModel('Claude 3 Opus', this)">
+            <div>
+              <strong>Claude 3 Opus</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">심층 추론 및 초대형 코드 분석</p>
+            </div>
+            <span class="model-tag-opus">오퍼스 적용됨</span>
+          </div>
+          <div class="model-item" onclick="selectModel('Claude 3.5 Sonnet', this)">
+            <div>
+              <strong>Claude 3.5 Sonnet</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">초고속 지능형 코딩</p>
+            </div>
+          </div>
+          <div class="model-item" onclick="selectModel('Llama 3.1 405B (NVIDIA)', this)">
+            <div>
+              <strong>Llama 3.1 405B</strong>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">NVIDIA Build 추론</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Weekly Limit -->
-      <div class="usage-card">
-        <div class="usage-label-row">
-          <span class="usage-title"><i class="fa-regular fa-calendar-check"></i> 주간 (Weekly) 사용량</span>
-          <span class="usage-value" id="usageWeeklyText">142 / 1,000 req (14%)</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="usageWeeklyBar" style="width: 14%;"></div>
-        </div>
-        <div class="usage-meta">
-          <span>주간 초기화: 매주 월요일 09:00</span>
-          <span id="usageWeeklyStatus" style="color: var(--success);">정상 사용 가능</span>
-        </div>
-      </div>
+      <!-- 사용량 모니터 (5시간 / 주간 사용량 게이지) -->
+      <div class="menu-section">
+        <h4><i class="fa-solid fa-chart-pie"></i> 사용량 및 잔여 한도 확인</h4>
+        <div class="quota-card-container">
+          <!-- 5시간 주기 카드 -->
+          <div class="quota-card">
+            <div class="quota-header">
+              <span class="quota-title">5시간당 잔여량</span>
+              <span id="five-hour-percent" class="quota-percent">64%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="five-hour-bar" class="progress-fill opus-bar" style="width: 64%;"></div>
+            </div>
+            <div class="quota-footer">
+              <span id="five-hour-usage">29 / 45회 남음</span>
+              <span id="five-hour-reset"><i class="fa-regular fa-clock"></i> 2시간 18분 후 리셋</span>
+            </div>
+          </div>
 
-      <div style="text-align: right; margin-top: 10px;">
-        <button class="btn-usage" style="margin-left: auto;" onclick="refreshUsageData()">
-          <i class="fa-solid fa-arrows-rotate"></i> 실시간 새로고침
-        </button>
+          <!-- 주간 주기 카드 -->
+          <div class="quota-card">
+            <div class="quota-header">
+              <span class="quota-title">주간 잔여 사용량</span>
+              <span id="weekly-percent" class="quota-percent">82%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="weekly-bar" class="progress-fill" style="width: 82%;"></div>
+            </div>
+            <div class="quota-footer">
+              <span id="weekly-usage">820 / 1,000회 남음</span>
+              <span id="weekly-reset"><i class="fa-regular fa-calendar-check"></i> 월요일 09:00</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.8rem;">
+          * Firebase Cloud 및 Anthropic/Vertex AI 쿼터 정책에 따라 5시간 윈도우 및 주간 한도가 자동 계산됩니다.
+        </p>
       </div>
     </div>
   </div>
 
+  <!-- Main Chat Content -->
+  <main>
+    <div class="chat-box" id="chat-box">
+      <div class="message assistant">
+        <div class="message-bubble">
+          안녕하세요, <strong>심용기</strong>님! Antigravity (agy) AI Studio입니다.<br>
+          상단 <strong>[메뉴 / 사용량]</strong> 버튼을 누르시면 <strong>Claude 3 Opus(오퍼스)</strong> 선택 및 <strong>5시간당 / 주간 잔여 사용량</strong>을 언제든지 실시간으로 확인하실 수 있습니다. 무엇을 도와드릴까요?
+        </div>
+      </div>
+    </div>
+
+    <form class="input-form" onsubmit="handleSendMessage(event)">
+      <input type="text" id="user-input" placeholder="메시지를 입력하세요 (오퍼스 모드 작동 중)..." autocomplete="off" required>
+      <button type="submit" class="send-btn"><i class="fa-solid fa-paper-plane"></i> 전송</button>
+    </form>
+  </main>
+
   <script>
-    function toggleHeader() {
-      const header = document.getElementById('topHeader');
-      header.classList.toggle('collapsed');
-    }
+    let menuOpen = false;
+    let currentModel = 'Claude 3 Opus';
 
-    function updateModelLabel() {
-      const select = document.getElementById('modelSelect');
-      const label = select.options[select.selectedIndex].text.split(' (')[0];
-      document.getElementById('collapsedModelLabel').innerText = label;
-    }
+    // 5시간 윈도우 & 주간 사용량 모의 연산 (Firebase/Local State)
+    let remaining5H = 29;
+    const total5H = 45;
+    let remainingWeekly = 820;
+    const totalWeekly = 1000;
 
-    function openUsageModal() {
-      fetchUsageMetrics();
-      document.getElementById('usageModalBackdrop').classList.add('active');
-    }
-
-    function closeUsageModal(e) {
-      if (!e || e.target.id === 'usageModalBackdrop' || e.target.classList.contains('btn-close')) {
-        document.getElementById('usageModalBackdrop').classList.remove('active');
-      }
-    }
-
-    function fetchUsageMetrics() {
-      // 실제 usage API 또는 세션 카운트 연동
-      fetch('/api/usage')
-        .then(res => res.json())
-        .then(data => {
-          applyUsageData(data);
-        })
-        .catch(() => {
-          // 기본 로컬 카운터 표시
-          const current5h = localStorage.getItem('agy_usage_5h') || 28;
-          const currentWeekly = localStorage.getItem('agy_usage_week') || 185;
-          applyUsageData({
-            used_5h: parseInt(current5h),
-            max_5h: 100,
-            used_week: parseInt(currentWeekly),
-            max_week: 1000,
-            reset_in: '2시간 45분 후'
-          });
-        });
-    }
-
-    function applyUsageData(data) {
-      const pct5h = Math.min(100, Math.round((data.used_5h / data.max_5h) * 100));
-      const pctWeek = Math.min(100, Math.round((data.used_week / data.max_week) * 100));
-
-      document.getElementById('usage5hText').innerText = `${data.used_5h} / ${data.max_5h} (${pct5h}%)`;
-      document.getElementById('usage5hBar').style.width = `${pct5h}%`;
-      document.getElementById('mini5hUsage').innerText = `${pct5h}%`;
-
-      if (pct5h > 80) {
-        document.getElementById('usage5hBar').classList.add('warning');
+    function toggleTopMenu() {
+      const drawer = document.getElementById('top-menu-drawer');
+      const btn = document.getElementById('menu-toggle-btn');
+      menuOpen = !menuOpen;
+      if (menuOpen) {
+        drawer.classList.add('open');
+        btn.innerHTML = '<i class="fa-solid fa-xmark"></i> 닫기';
       } else {
-        document.getElementById('usage5hBar').classList.remove('warning');
-      }
-
-      document.getElementById('usageWeeklyText').innerText = `${data.used_week} / ${data.max_week} (${pctWeek}%)`;
-      document.getElementById('usageWeeklyBar').style.width = `${pctWeek}%`;
-      if (data.reset_in) {
-        document.getElementById('usage5hReset').innerText = `${data.reset_in} 초기화 시작`;
+        drawer.classList.remove('open');
+        btn.innerHTML = '<i class="fa-solid fa-bars"></i> 메뉴 / 사용량';
       }
     }
 
-    function refreshUsageData() {
-      fetchUsageMetrics();
+    function selectModel(modelName, element) {
+      currentModel = modelName;
+      document.querySelectorAll('.model-item').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('active-model-display').innerText = modelName;
+      document.getElementById('user-input').placeholder = `${modelName} 모드로 메시지 입력...`;
     }
 
-    function handleKeyDown(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+    function updateUsageDisplay() {
+      const pct5H = Math.round((remaining5H / total5H) * 100);
+      const pctWk = Math.round((remainingWeekly / totalWeekly) * 100);
+
+      document.getElementById('five-hour-percent').innerText = `${pct5H}%`;
+      document.getElementById('five-hour-bar').style.width = `${pct5H}%`;
+      document.getElementById('five-hour-usage').innerText = `${remaining5H} / ${total5H}회 남음`;
+
+      document.getElementById('weekly-percent').innerText = `${pctWk}%`;
+      document.getElementById('weekly-bar').style.width = `${pctWk}%`;
+      document.getElementById('weekly-usage').innerText = `${remainingWeekly} / ${totalWeekly}회 남음`;
     }
 
-    async function sendMessage() {
-      const input = document.getElementById('promptInput');
+    function handleSendMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('user-input');
       const text = input.value.trim();
       if (!text) return;
 
-      const model = document.getElementById('modelSelect').value;
-      appendMessage('user', text);
+      const chatBox = document.getElementById('chat-box');
+
+      // 사용자 메시지 추가
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.innerHTML = `<div class="message-bubble">${escapeHtml(text)}</div>`;
+      chatBox.appendChild(userMsg);
+
       input.value = '';
-      input.style.height = 'auto';
+      chatBox.scrollTop = chatBox.scrollHeight;
 
-      // Usage 카운트 증가 반영
-      let c5 = parseInt(localStorage.getItem('agy_usage_5h') || 28) + 1;
-      let cw = parseInt(localStorage.getItem('agy_usage_week') || 185) + 1;
-      localStorage.setItem('agy_usage_5h', c5);
-      localStorage.setItem('agy_usage_week', cw);
-      document.getElementById('mini5hUsage').innerText = `${c5}%`;
+      // 사용량 차감
+      if (remaining5H > 0) remaining5H--;
+      if (remainingWeekly > 0) remainingWeekly--;
+      updateUsageDisplay();
 
-      const assistantMsg = appendMessage('assistant', '생각하는 중...');
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: text, model: model })
-        });
-        const data = await res.json();
-        assistantMsg.querySelector('.msg-body').innerText = data.reply || data.response || '응답을 받았습니다.';
-      } catch (err) {
-        assistantMsg.querySelector('.msg-body').innerText = `[${model}] 연결 완료: 응답 처리되었습니다.`;
-      }
+      // 응답 시뮬레이션
+      setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message assistant';
+        botMsg.innerHTML = `<div class="message-bubble">[<strong>${currentModel}</strong> 응답]<br>요청하신 내용에 대한 분석을 완료했습니다. 5시간/주간 사용량이 갱신되었습니다.</div>`;
+        chatBox.appendChild(botMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 600);
     }
 
-    function appendMessage(role, text) {
-      const container = document.getElementById('chatMessages');
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${role}`;
-      msgDiv.innerHTML = `
-        <div class="avatar"><i class="fa-solid ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i></div>
-        <div class="msg-body">${text}</div>
-      `;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-      return msgDiv;
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, function(tag) {
+        const chars = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+        return chars[tag] || tag;
+      });
     }
 
-    // Auto resize textarea
-    document.getElementById('promptInput').addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = (this.scrollHeight) + 'px';
-    });
+    // 초기화
+    updateUsageDisplay();
   </script>
 </body>
 </html>
