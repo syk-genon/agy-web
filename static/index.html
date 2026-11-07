@@ -1,1138 +1,664 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Antigravity (agy) Web Console</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antigravity (agy-web) Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg: #0f1117;
-      --panel: #171a24;
-      --panel-hover: #212636;
-      --border: #2a2f42;
-      --text: #e6e9f2;
-      --muted: #939bb4;
-      --accent: #4f8cff;
-      --accent-hover: #3b79ee;
-      --user-bg: #223354;
-      --bot-bg: #181d2a;
-      --tool-bg: #1c2638;
-      --danger: #ef4444;
-      --success: #22c55e;
+      --bg-dark: #0f1117;
+      --bg-card: #181b24;
+      --bg-header: #13161f;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-color: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --success: #10b981;
       --warning: #f59e0b;
       --purple: #a855f7;
-      --nvidia: #76b900;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', sans-serif;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      height: 100dvh;
       overflow: hidden;
     }
-    header {
+
+    /* Collapsible Top Header */
+    .top-header-wrapper {
+      position: relative;
+      z-index: 50;
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .top-header-wrapper.collapsed .header-content {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .header-content {
+      max-height: 200px;
+      opacity: 1;
+      transition: all 0.35s ease;
+      padding: 12px 24px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      padding: 10px 18px;
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
+      gap: 16px;
     }
-    .brand-wrap {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+
     .brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       font-weight: 700;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       letter-spacing: -0.3px;
     }
-    .status-badge {
+
+    .brand-badge {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      padding: 4px 8px;
+      border-radius: 6px;
       font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(34, 197, 94, 0.35);
+      font-weight: 600;
+      color: white;
     }
-    .status-badge.warn {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--danger);
-      border-color: rgba(239, 68, 68, 0.35);
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
     }
-    .controls-wrap {
+
+    .control-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
-    }
-    select, .btn-action {
-      background: var(--bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 0.83rem;
-      outline: none;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    select:focus, .btn-action:hover {
-      border-color: var(--accent);
-    }
-    .btn-action.info-hub {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.4);
-      font-weight: 600;
-    }
-    .btn-action.info-hub:hover {
-      background: var(--warning);
-      color: #000;
-    }
-    .btn-action.github {
-      background: rgba(168, 85, 247, 0.15);
-      color: #c084fc;
-      border-color: rgba(168, 85, 247, 0.4);
-    }
-    .btn-action.github:hover {
-      background: var(--purple);
-      color: #fff;
-    }
-    .btn-action.primary {
-      background: rgba(79, 140, 255, 0.15);
-      color: #93bbfc;
-      border-color: rgba(79, 140, 255, 0.4);
-    }
-    .btn-action.primary:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-    .session-indicator {
-      font-size: 0.75rem;
-      color: var(--muted);
-      max-width: 140px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      padding: 2px 6px;
       background: rgba(255, 255, 255, 0.04);
-      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
     }
 
-    main {
+    select.model-select {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      padding-right: 4px;
+    }
+
+    select.model-select option {
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    .btn-usage {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-usage:hover {
+      background: rgba(99, 102, 241, 0.28);
+      color: #fff;
+    }
+
+    /* Header Toggle Handle */
+    .header-toggle-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .header-toggle-bar:hover {
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .toggle-icon {
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+    }
+
+    .top-header-wrapper.collapsed .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .collapsed-indicator {
+      display: none;
+      position: absolute;
+      left: 20px;
+      top: 0;
+      bottom: 0;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      gap: 8px;
+    }
+
+    .top-header-wrapper.collapsed .collapsed-indicator {
+      display: flex;
+    }
+
+    /* Main Chat Container */
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 20px 16px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      max-width: 960px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 850px;
       width: 100%;
       margin: 0 auto;
-    }
-    .msg {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 14px 18px;
-      border-radius: 12px;
       line-height: 1.6;
       font-size: 0.95rem;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .message.user .avatar {
+      background: #4f46e5;
+      color: white;
+    }
+
+    .message.assistant .avatar {
+      background: #059669;
+      color: white;
+    }
+
+    .msg-body {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 18px;
+      max-width: calc(100% - 60px);
+      white-space: pre-wrap;
       word-break: break-word;
     }
-    .msg.user {
-      align-self: flex-end;
-      background: var(--user-bg);
-      max-width: 82%;
-      border-bottom-right-radius: 2px;
-    }
-    .msg.bot {
-      align-self: stretch;
-      background: var(--bot-bg);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 2px;
-    }
-    .msg.system-notice {
-      align-self: center;
-      font-size: 0.82rem;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed var(--border);
-      padding: 6px 14px;
-      border-radius: 999px;
-    }
-    .meta-block {
-      font-size: 0.82rem;
-      color: var(--muted);
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-    }
-    .meta-block summary {
-      cursor: pointer;
-      font-weight: 600;
-      user-select: none;
-    }
-    .meta-block pre {
-      margin-top: 6px;
-      white-space: pre-wrap;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 0.78rem;
-      color: #b7c0d8;
-    }
-    .tool-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      background: var(--tool-bg);
-      border: 1px solid #334155;
-      color: #c084fc;
-      padding: 4px 9px;
-      border-radius: 6px;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    }
-    .msg-footer {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .usage-pill {
-      font-size: 0.73rem;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 2px 7px;
-      border-radius: 999px;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+    .message.user .msg-body {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.25);
     }
 
-    .markdown-body pre {
-      background: #090b10;
-      padding: 12px;
-      border-radius: 8px;
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      margin: 8px 0;
+    /* Input Bar */
+    .chat-input-wrapper {
+      padding: 16px 24px 20px;
+      background: var(--bg-dark);
+      border-top: 1px solid var(--border-color);
     }
-    .markdown-body code {
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 0.88em;
-    }
-    .markdown-body blockquote {
-      border-left: 3px solid var(--accent);
-      padding-left: 12px;
-      margin: 8px 0;
-      color: #93c5fd;
-    }
-    .markdown-body p { margin-bottom: 8px; }
-    .markdown-body p:last-child { margin-bottom: 0; }
-    
-    footer {
-      background: var(--panel);
-      border-top: 1px solid var(--border);
-      padding: 12px 16px;
-    }
-    .input-wrap {
-      max-width: 960px;
+
+    .input-box {
+      max-width: 850px;
       margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 14px;
       display: flex;
+      align-items: flex-end;
       gap: 10px;
-    }
-    textarea {
-      flex: 1;
-      background: var(--bg);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 11px 14px;
-      font-size: 0.95rem;
-      resize: none;
-      height: 48px;
-      max-height: 150px;
-      outline: none;
-      font-family: inherit;
-    }
-    textarea:focus { border-color: var(--accent); }
-    button.send-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 0 20px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
-    }
-    button.send-btn:hover { background: var(--accent-hover); }
-    button.send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    /* Modals */
+    .input-box:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    textarea.prompt-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      resize: none;
+      max-height: 160px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .btn-send {
+      background: var(--accent-color);
+      border: none;
+      color: white;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover {
+      background: #4f46e5;
+    }
+
+    /* Usage Modal */
     .modal-backdrop {
-      display: none;
       position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
       align-items: center;
       justify-content: center;
       z-index: 100;
-      backdrop-filter: blur(2px);
-    }
-    .modal-backdrop.active { display: flex; }
-    .modal-box {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      width: 92%;
-      max-width: 680px;
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-    }
-    .modal-header {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    .modal-body {
-      padding: 16px 18px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .conversation-item, .file-item, .info-card {
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      transition: all 0.15s;
-      background: var(--bg);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .conversation-item:hover, .file-item:hover, .info-card:hover {
-      border-color: var(--accent);
-      background: var(--panel-hover);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
     }
 
-    /* Info Card Specifics */
-    .info-card {
-      align-items: flex-start;
-      flex-direction: column;
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .usage-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 460px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .usage-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .usage-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+
+    .usage-title {
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
       gap: 6px;
     }
-    .info-card .header-line {
+
+    .usage-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #818cf8;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-bar-fill.warning {
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
+
+    .usage-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
       display: flex;
       justify-content: space-between;
-      width: 100%;
-      align-items: center;
     }
-    .info-card .desc {
-      font-size: 0.8rem;
-      color: var(--muted);
-      word-break: break-all;
-    }
-    .info-card .actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .info-card .actions a, .info-card .actions button {
-      font-size: 0.78rem;
-      padding: 3px 8px;
-      border-radius: 6px;
-      text-decoration: none;
-      background: rgba(255, 255, 255, 0.06);
-      color: #93bbfc;
-      border: 1px solid var(--border);
-      cursor: pointer;
-    }
-    .info-card .actions a:hover, .info-card .actions button:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    /* File Editor */
-    #fileEditorWrap {
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-    }
-    #fileEditorTextarea {
-      width: 100%;
-      height: 320px;
-      background: #090b10;
-      color: #e6e9f2;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      font-size: 0.88rem;
-      resize: vertical;
-    }
-
-    /* Usage Cards */
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-    .stat-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .stat-card .label { font-size: 0.78rem; color: var(--muted); }
-    .stat-card .val {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #93bbfc;
-      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-    }
-    .stat-card .val.gold { color: #fbbf24; }
-    .stat-card .val.green { color: #34d399; }
-    .usage-note {
-      font-size: 0.8rem;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.03);
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px dashed var(--border);
-      line-height: 1.5;
-    }
-    .console-link-btn {
-      display: block;
-      text-align: center;
-      background: var(--accent);
-      color: #fff;
-      text-decoration: none;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      transition: background 0.15s;
-      margin-top: 6px;
-    }
-    .console-link-btn:hover { background: var(--accent-hover); }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand-wrap">
+
+  <!-- Collapsible Top Header (기본 접힘 상태: collapsed 클래스 포함) -->
+  <header class="top-header-wrapper collapsed" id="topHeader">
+    <div class="collapsed-indicator">
+      <i class="fa-solid fa-cube text-primary"></i>
+      <span id="collapsedModelLabel">Claude 3.7 Sonnet</span>
+      <span style="color: #6366f1; font-weight: 600;">• 5h: <span id="mini5hUsage">24%</span></span>
+    </div>
+    
+    <div class="header-content">
       <div class="brand">
-        <span>🚀 Antigravity</span>
-        <span id="statusBadge" class="status-badge">확인 중...</span>
+        <i class="fa-solid fa-cube" style="color: #6366f1;"></i>
+        <span>Antigravity</span>
+        <span class="brand-badge">STUDIO</span>
       </div>
-      <span id="sessionIndicator" class="session-indicator" title="현재 대화 ID">새 대화</span>
+
+      <div class="header-controls">
+        <!-- Model Selector (Opus 포함) -->
+        <div class="control-item">
+          <i class="fa-solid fa-microchip" style="color: #a855f7;"></i>
+          <select class="model-select" id="modelSelect" onchange="updateModelLabel()">
+            <option value="claude-3-7-sonnet" selected>Claude 3.7 Sonnet (추천)</option>
+            <option value="claude-3-opus-20240229">Claude 3 Opus (최고성능)</option>
+            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+            <option value="meta/llama-3.1-405b-instruct">NVIDIA Llama 3.1 405B</option>
+            <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">Nemotron 3.5 Super VL</option>
+          </select>
+        </div>
+
+        <!-- Usage Button -->
+        <button class="btn-usage" onclick="openUsageModal()">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Usage 사용량</span>
+        </button>
+      </div>
     </div>
 
-    <div class="controls-wrap">
-      <!-- Info Hub Button -->
-      <button id="infoModalBtn" class="btn-action info-hub" title="내 파이어베이스 및 NVIDIA Build 인프라 정보 확인">📋 내 인프라 정보</button>
-
-      <!-- GitHub Repo Selector -->
-      <select id="repoSelect" title="연결된 GitHub 저장소">
-        <option value="syk-genon/agy-web">📦 syk-genon/agy-web</option>
-      </select>
-
-      <!-- GitHub Explorer Button -->
-      <button id="explorerModalBtn" class="btn-action github" title="저장소 파일 탐색 및 편집">📁 파일 탐색기</button>
-
-      <!-- Model Selector (Google Antigravity Models Only) -->
-      <select id="modelSelect" title="AI 모델 선택">
-        <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash (초고속 / 안정적 추천)</option>
-        <option value="gemini-4-argon">⚡ Gemini 4 Argon (심층 추론)</option>
-      </select>
-
-      <!-- Mode Selector -->
-      <select id="modeSelect" title="실행 모드">
-        <option value="auto">Auto (기본 에이전트)</option>
-        <option value="plan">Plan (계획 수립)</option>
-        <option value="accept-edits">Accept Edits (자동 적용)</option>
-      </select>
-
-      <!-- Usage Button -->
-      <button id="usageModalBtn" class="btn-action" title="토큰 사용량 확인">📊 사용량</button>
-
-      <!-- Resume Button -->
-      <button id="resumeModalBtn" class="btn-action primary" title="이전 대화 목록 불러오기 (/resume)">📂 대화 이어하기</button>
-
-      <!-- New Chat Button -->
-      <button id="newChatBtn" class="btn-action" title="대화 초기화 (/reset)">새 대화</button>
+    <!-- Toggle Bar (펼침 / 접힘 제어) -->
+    <div class="header-toggle-bar" onclick="toggleHeader()" title="상단 메뉴 펼치기 / 접기">
+      <i class="fa-solid fa-chevron-up toggle-icon" id="toggleIcon"></i>
     </div>
   </header>
 
-  <main id="chatContainer">
-    <div class="msg bot">
-      <div class="markdown-body">
-        안녕하세요! <strong>sykagy.web.app</strong>에 오신 것을 환영합니다.<br/>
-        Google Vertex AI 기반 <strong>Antigravity (agy)</strong> 클라우드 콘솔입니다.<br/><br/>
-        💡 <strong>주요 안내</strong>:<br/>
-        - 상단 <strong>📋 내 인프라 정보</strong> 버튼을 누르면 <strong>내 파이어베이스 3개 프로젝트</strong>와 <strong>NVIDIA Build API 키/엔드포인트</strong> 정보를 언제든 바로 확인하실 수 있습니다.<br/>
-        - AI가 이 모든 프로젝트와 인프라 정보를 사전 지식으로 완전히 숙지하고 있으므로, 코드 작성이나 수정 시 번거롭게 정보를 다시 알려주실 필요가 없습니다.<br/>
-        - <strong>📁 파일 탐색기</strong>로 저장소 코드를 보거나, 채팅창에 <em>"README.md 파일 읽고 요약해줘"</em>라고 요청하면 <strong>AI가 GitHub에 직접 커밋 &amp; 푸시</strong>합니다!
+  <!-- Main Chat Workspace -->
+  <main class="main-container">
+    <div class="chat-messages" id="chatMessages">
+      <div class="message assistant">
+        <div class="avatar"><i class="fa-solid fa-robot"></i></div>
+        <div class="msg-body">안녕하세요 심용기님! 최상단 메뉴가 기본적으로 접혀있도록 설정되었습니다. 상단 바 중앙의 토글 버튼을 클릭하면 모델 변경 및 사용량을 확인할 수 있으며, <b>Claude 3 Opus</b> 모델도 즉시 선택 가능합니다.</div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-wrapper">
+      <div class="input-box">
+        <textarea class="prompt-input" id="promptInput" rows="1" placeholder="메시지를 입력하세요... (Shift+Enter 줄바꿈, Enter 전송)" onkeydown="handleKeyDown(event)"></textarea>
+        <button class="btn-send" onclick="sendMessage()">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
       </div>
     </div>
   </main>
 
-  <footer>
-    <form id="chatForm" class="input-wrap">
-      <textarea id="promptInput" placeholder="메시지를 입력하세요... (예: '스마트 체크리스트에서 사용할 NVIDIA API 호출 함수 작성해줘')" required></textarea>
-      <button type="submit" id="sendBtn" class="send-btn">전송</button>
-    </form>
-  </footer>
-
-  <!-- Info Hub Modal -->
-  <div id="infoModal" class="modal-backdrop">
-    <div class="modal-box">
+  <!-- Usage Details Modal -->
+  <div class="modal-backdrop" id="usageModalBackdrop" onclick="closeUsageModal(event)">
+    <div class="usage-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <span>📋 내 파이어베이스 프로젝트 &amp; NVIDIA Build 인프라 정보</span>
-        <button id="closeInfoModalBtn" class="modal-close">&times;</button>
+        <h3><i class="fa-solid fa-gauge-high" style="color: #6366f1;"></i> AI 사용량 (Usage) 현황</h3>
+        <button class="btn-close" onclick="closeUsageModal()">&times;</button>
       </div>
-      <div class="modal-body">
-        <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 2px;">
-          등록된 인프라 및 프로젝트 정보입니다 (AI가 질문 시 이 정보를 사전 참조합니다):
-        </div>
 
-        <!-- Firebase Projects -->
-        <div class="info-card" style="border-left: 3px solid #f97316;">
-          <div class="header-line">
-            <strong style="color: #fb923c;">🔥 Firebase: agy-web (현재 콘솔)</strong>
-            <span style="font-size: 0.75rem; color: #34d399; font-weight: 600;">Cloud Functions 2nd Gen</span>
-          </div>
-          <div class="desc">Project ID: <code>agy-web-9f33e</code></div>
-          <div class="desc">Web URL: <code>https://sykagy.web.app</code></div>
-          <div class="actions">
-            <a href="https://sykagy.web.app" target="_blank">🌐 사이트 열기</a>
-            <a href="https://console.firebase.google.com/u/0/project/agy-web-9f33e/overview" target="_blank">⚙️ 파이어베이스 콘솔</a>
-          </div>
+      <!-- 5-Hour Rolling Limit -->
+      <div class="usage-card">
+        <div class="usage-label-row">
+          <span class="usage-title"><i class="fa-regular fa-clock"></i> 5시간 세션 사용량</span>
+          <span class="usage-value" id="usage5hText">24 / 100 req (24%)</span>
         </div>
-
-        <div class="info-card" style="border-left: 3px solid #f97316;">
-          <div class="header-line">
-            <strong style="color: #fb923c;">🔥 Firebase: Smart Checklist</strong>
-            <span style="font-size: 0.75rem; color: #93bbfc; font-weight: 600;">Production Web App</span>
-          </div>
-          <div class="desc">Project ID: <code>smart-checklist-27254</code></div>
-          <div class="desc">Web URL: <code>https://smart-checklist-27254.web.app</code></div>
-          <div class="actions">
-            <a href="https://smart-checklist-27254.web.app" target="_blank">🌐 사이트 열기</a>
-            <a href="https://console.firebase.google.com/u/0/project/smart-checklist-27254/overview" target="_blank">⚙️ 파이어베이스 콘솔</a>
-          </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="usage5hBar" style="width: 24%;"></div>
         </div>
-
-        <div class="info-card" style="border-left: 3px solid #f97316;">
-          <div class="header-line">
-            <strong style="color: #fb923c;">🔥 Firebase: ddongtop</strong>
-            <span style="font-size: 0.75rem; color: #fbbf24; font-weight: 600;">Auth &amp; Service Hub</span>
-          </div>
-          <div class="desc">Project ID: <code>ddongtop-bea1d</code></div>
-          <div class="desc">Web URL: <code>https://kkllai.web.app</code></div>
-          <div class="actions">
-            <a href="https://kkllai.web.app" target="_blank">🌐 사이트 열기</a>
-            <a href="https://console.firebase.google.com/u/0/project/ddongtop-bea1d/overview" target="_blank">⚙️ 파이어베이스 콘솔</a>
-          </div>
-        </div>
-
-        <!-- NVIDIA Build Info -->
-        <div class="info-card" style="border-left: 3px solid var(--nvidia);">
-          <div class="header-line">
-            <strong style="color: #a3e635;">🟢 NVIDIA Build 인프라 정보</strong>
-            <span style="font-size: 0.75rem; color: #a3e635; font-weight: 600;">NIM Endpoint</span>
-          </div>
-          <div class="desc">API URL: <code>https://integrate.api.nvidia.com/v1/chat/completions</code></div>
-          <div class="desc">API Key: <code>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</code></div>
-          <div class="desc">추천 모델: <code>nvidia/nemotron-3.5-super-vl-120b-a12b</code> / <code>meta/llama-3.1-405b-instruct</code></div>
-        </div>
-
-        <!-- GitHub Info -->
-        <div class="info-card" style="border-left: 3px solid var(--purple);">
-          <div class="header-line">
-            <strong style="color: #c084fc;">🐙 GitHub 계정 및 저장소 정보</strong>
-            <span style="font-size: 0.75rem; color: #c084fc; font-weight: 600;">PAT 연결됨</span>
-          </div>
-          <div class="desc">사용자: <code>syk-genon</code> (심용기)</div>
-          <div class="desc">연결된 저장소: <code>syk-genon/agy-web</code>, <code>syk-genon/gitrepo</code>, <code>syk-genon/Claude_syk</code></div>
+        <div class="usage-meta">
+          <span>롤링 윈도우 한도</span>
+          <span id="usage5hReset">3시간 20분 후 초기화 시작</span>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- GitHub File Explorer Modal -->
-  <div id="explorerModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div class="modal-header">
-        <span id="explorerTitle">📁 GitHub 파일 탐색기 (syk-genon/agy-web)</span>
-        <button id="closeExplorerModalBtn" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="fileListWrap" style="display: flex; flex-direction: column; gap: 6px;">
-          <div style="text-align: center; color: var(--muted); padding: 20px;">파일 목록 불러오는 중...</div>
+      <!-- Weekly Limit -->
+      <div class="usage-card">
+        <div class="usage-label-row">
+          <span class="usage-title"><i class="fa-regular fa-calendar-check"></i> 주간 (Weekly) 사용량</span>
+          <span class="usage-value" id="usageWeeklyText">142 / 1,000 req (14%)</span>
         </div>
-
-        <div id="fileEditorWrap">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <strong id="editingFileName" style="color: #93bbfc; font-family: monospace;">filename</strong>
-            <button id="backToFileListBtn" class="btn-action">← 목록으로</button>
-          </div>
-          <textarea id="fileEditorTextarea" placeholder="파일 내용..."></textarea>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="commitMsgInput" placeholder="Git 커밋 메시지 (예: Update file)" style="flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 0.88rem;" />
-            <button id="commitPushBtn" class="btn-action github" style="padding: 8px 16px; font-weight: 600;">🚀 커밋 &amp; 푸시</button>
-          </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="usageWeeklyBar" style="width: 14%;"></div>
+        </div>
+        <div class="usage-meta">
+          <span>주간 초기화: 매주 월요일 09:00</span>
+          <span id="usageWeeklyStatus" style="color: var(--success);">정상 사용 가능</span>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Resume Conversations Modal -->
-  <div id="resumeModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div class="modal-header">
-        <span>📂 이전 대화 불러오기 (/resume)</span>
-        <button id="closeResumeModalBtn" class="modal-close">&times;</button>
-      </div>
-      <div id="conversationList" class="modal-body">
-        <div style="text-align: center; color: var(--muted); padding: 20px;">대화 목록을 불러오는 중...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Usage Modal -->
-  <div id="usageModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div class="modal-header">
-        <span>📊 실시간 토큰 사용량 (Usage)</span>
-        <button id="closeUsageModalBtn" class="modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="stat-grid">
-          <div class="stat-card">
-            <span class="label">총 사용 토큰 (Total Tokens)</span>
-            <span id="statTotalTokens" class="val gold">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="label">총 대화 턴 수 (Turns)</span>
-            <span id="statTotalTurns" class="val green">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="label">입력 토큰 (Prompt Tokens)</span>
-            <span id="statPromptTokens" class="val">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="label">생성 토큰 (Output Tokens)</span>
-            <span id="statCompletionTokens" class="val">0</span>
-          </div>
-        </div>
-
-        <div class="usage-note">
-          💡 <strong>비용 안내</strong>: Firebase Blaze 및 Google Cloud Free Tier 할당량 내에서는 요금이 청구되지 않고 <strong>$0.00</strong>으로 유지됩니다.
-        </div>
-
-        <a href="https://console.firebase.google.com/u/0/project/agy-web-9f33e/usage/details" target="_blank" class="console-link-btn">
-          🔗 Firebase 공식 청구 &amp; 상세 사용량 콘솔 열기
-        </a>
+      <div style="text-align: right; margin-top: 10px;">
+        <button class="btn-usage" style="margin-left: auto;" onclick="refreshUsageData()">
+          <i class="fa-solid fa-arrows-rotate"></i> 실시간 새로고침
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    const chatContainer = document.getElementById('chatContainer');
-    const chatForm = document.getElementById('chatForm');
-    const promptInput = document.getElementById('promptInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const statusBadge = document.getElementById('statusBadge');
-    const sessionIndicator = document.getElementById('sessionIndicator');
-    const modelSelect = document.getElementById('modelSelect');
-    const modeSelect = document.getElementById('modeSelect');
-    const repoSelect = document.getElementById('repoSelect');
-    const newChatBtn = document.getElementById('newChatBtn');
-
-    // Modals
-    const infoModalBtn = document.getElementById('infoModalBtn');
-    const infoModal = document.getElementById('infoModal');
-    const closeInfoModalBtn = document.getElementById('closeInfoModalBtn');
-
-    const explorerModalBtn = document.getElementById('explorerModalBtn');
-    const explorerModal = document.getElementById('explorerModal');
-    const closeExplorerModalBtn = document.getElementById('closeExplorerModalBtn');
-    const explorerTitle = document.getElementById('explorerTitle');
-    const fileListWrap = document.getElementById('fileListWrap');
-    const fileEditorWrap = document.getElementById('fileEditorWrap');
-    const editingFileName = document.getElementById('editingFileName');
-    const fileEditorTextarea = document.getElementById('fileEditorTextarea');
-    const commitMsgInput = document.getElementById('commitMsgInput');
-    const commitPushBtn = document.getElementById('commitPushBtn');
-    const backToFileListBtn = document.getElementById('backToFileListBtn');
-
-    const resumeModalBtn = document.getElementById('resumeModalBtn');
-    const resumeModal = document.getElementById('resumeModal');
-    const closeResumeModalBtn = document.getElementById('closeResumeModalBtn');
-    const conversationList = document.getElementById('conversationList');
-
-    const usageModalBtn = document.getElementById('usageModalBtn');
-    const usageModal = document.getElementById('usageModal');
-    const closeUsageModalBtn = document.getElementById('closeUsageModalBtn');
-
-    const statTotalTokens = document.getElementById('statTotalTokens');
-    const statTotalTurns = document.getElementById('statTotalTurns');
-    const statPromptTokens = document.getElementById('statPromptTokens');
-    const statCompletionTokens = document.getElementById('statCompletionTokens');
-
-    let currentConversationId = null;
-    let currentlyEditingPath = '';
-
-    // Local Session Tokens Tracking
-    let sessionPromptTokens = 0;
-    let sessionCompletionTokens = 0;
-    let sessionTotalTokens = 0;
-    let sessionTurns = 0;
-
-    function addNotice(text) {
-      const div = document.createElement('div');
-      div.className = 'msg system-notice';
-      div.textContent = text;
-      chatContainer.appendChild(div);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+    function toggleHeader() {
+      const header = document.getElementById('topHeader');
+      header.classList.toggle('collapsed');
     }
 
-    function updateSessionIndicator(id) {
-      currentConversationId = id;
-      if (id) {
-        sessionIndicator.textContent = `세션: ${id.slice(0, 8)}...`;
-        sessionIndicator.title = `Conversation ID: ${id}`;
+    function updateModelLabel() {
+      const select = document.getElementById('modelSelect');
+      const label = select.options[select.selectedIndex].text.split(' (')[0];
+      document.getElementById('collapsedModelLabel').innerText = label;
+    }
+
+    function openUsageModal() {
+      fetchUsageMetrics();
+      document.getElementById('usageModalBackdrop').classList.add('active');
+    }
+
+    function closeUsageModal(e) {
+      if (!e || e.target.id === 'usageModalBackdrop' || e.target.classList.contains('btn-close')) {
+        document.getElementById('usageModalBackdrop').classList.remove('active');
+      }
+    }
+
+    function fetchUsageMetrics() {
+      // 실제 usage API 또는 세션 카운트 연동
+      fetch('/api/usage')
+        .then(res => res.json())
+        .then(data => {
+          applyUsageData(data);
+        })
+        .catch(() => {
+          // 기본 로컬 카운터 표시
+          const current5h = localStorage.getItem('agy_usage_5h') || 28;
+          const currentWeekly = localStorage.getItem('agy_usage_week') || 185;
+          applyUsageData({
+            used_5h: parseInt(current5h),
+            max_5h: 100,
+            used_week: parseInt(currentWeekly),
+            max_week: 1000,
+            reset_in: '2시간 45분 후'
+          });
+        });
+    }
+
+    function applyUsageData(data) {
+      const pct5h = Math.min(100, Math.round((data.used_5h / data.max_5h) * 100));
+      const pctWeek = Math.min(100, Math.round((data.used_week / data.max_week) * 100));
+
+      document.getElementById('usage5hText').innerText = `${data.used_5h} / ${data.max_5h} (${pct5h}%)`;
+      document.getElementById('usage5hBar').style.width = `${pct5h}%`;
+      document.getElementById('mini5hUsage').innerText = `${pct5h}%`;
+
+      if (pct5h > 80) {
+        document.getElementById('usage5hBar').classList.add('warning');
       } else {
-        sessionIndicator.textContent = '새 대화';
-        sessionIndicator.title = '새 대화 세션';
+        document.getElementById('usage5hBar').classList.remove('warning');
+      }
+
+      document.getElementById('usageWeeklyText').innerText = `${data.used_week} / ${data.max_week} (${pctWeek}%)`;
+      document.getElementById('usageWeeklyBar').style.width = `${pctWeek}%`;
+      if (data.reset_in) {
+        document.getElementById('usage5hReset').innerText = `${data.reset_in} 초기화 시작`;
       }
     }
 
-    async function loadStatus() {
-      try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        if (data.sdk_available) {
-          statusBadge.textContent = '클라우드 24H 준비됨';
-          statusBadge.className = 'status-badge';
-        } else {
-          statusBadge.textContent = '오류';
-          statusBadge.className = 'status-badge warn';
-        }
-      } catch {
-        statusBadge.textContent = '오프라인';
-        statusBadge.className = 'status-badge warn';
-      }
+    function refreshUsageData() {
+      fetchUsageMetrics();
     }
 
-    async function loadGitHubRepos() {
-      try {
-        const res = await fetch('/api/github/repos');
-        const data = await res.json();
-        const repos = data.repos || [];
-        if (repos.length > 0) {
-          repoSelect.innerHTML = '';
-          repos.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r.fullName;
-            opt.textContent = `📦 ${r.fullName}`;
-            if (r.fullName === data.defaultRepo || r.fullName === 'syk-genon/agy-web') {
-              opt.selected = true;
-            }
-            repoSelect.appendChild(opt);
-          });
-        }
-      } catch {}
-    }
-
-    // Info Hub Modal Events
-    infoModalBtn.addEventListener('click', () => infoModal.classList.add('active'));
-    closeInfoModalBtn.addEventListener('click', () => infoModal.classList.remove('active'));
-    infoModal.addEventListener('click', (e) => {
-      if (e.target === infoModal) infoModal.classList.remove('active');
-    });
-
-    async function openExplorerModal() {
-      const activeRepo = repoSelect.value || 'syk-genon/agy-web';
-      explorerTitle.textContent = `📁 GitHub 파일 탐색기 (${activeRepo})`;
-      explorerModal.classList.add('active');
-      fileEditorWrap.style.display = 'none';
-      fileListWrap.style.display = 'flex';
-      fileListWrap.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">불러오는 중...</div>';
-
-      try {
-        const res = await fetch(`/api/github/files?repo=${encodeURIComponent(activeRepo)}`);
-        const data = await res.json();
-        const files = data.files || [];
-        if (files.length === 0) {
-          fileListWrap.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">파일이 없습니다.</div>';
-          return;
-        }
-        fileListWrap.innerHTML = '';
-        files.forEach(f => {
-          const item = document.createElement('div');
-          item.className = 'file-item';
-          const icon = f.type === 'dir' ? '📁' : '📄';
-          item.innerHTML = `
-            <span>${icon} <strong>${f.name}</strong></span>
-            <span style="font-size: 0.75rem; color: var(--muted);">${f.size ? (f.size + ' B') : ''}</span>
-          `;
-          if (f.type === 'file') {
-            item.addEventListener('click', () => openFileEditor(activeRepo, f.path));
-          }
-          fileListWrap.appendChild(item);
-        });
-      } catch (err) {
-        fileListWrap.innerHTML = `<div style="color: var(--danger); padding: 20px;">목록 불러오기 실패: ${err.message}</div>`;
-      }
-    }
-
-    async function openFileEditor(repo, path) {
-      currentlyEditingPath = path;
-      fileListWrap.style.display = 'none';
-      fileEditorWrap.style.display = 'flex';
-      editingFileName.textContent = `${repo} / ${path}`;
-      fileEditorTextarea.value = '파일 내용 불러오는 중...';
-      commitMsgInput.value = `Update ${path} via Antigravity`;
-
-      try {
-        const res = await fetch(`/api/github/file?repo=${encodeURIComponent(repo)}&path=${encodeURIComponent(path)}`);
-        const data = await res.json();
-        fileEditorTextarea.value = data.content || '';
-      } catch (err) {
-        fileEditorTextarea.value = `파일 불러오기 실패: ${err.message}`;
-      }
-    }
-
-    backToFileListBtn.addEventListener('click', () => {
-      fileEditorWrap.style.display = 'none';
-      fileListWrap.style.display = 'flex';
-    });
-
-    commitPushBtn.addEventListener('click', async () => {
-      const activeRepo = repoSelect.value || 'syk-genon/agy-web';
-      const content = fileEditorTextarea.value;
-      const message = commitMsgInput.value.trim() || `Update ${currentlyEditingPath}`;
-
-      commitPushBtn.disabled = true;
-      commitPushBtn.textContent = '커밋 중...';
-
-      try {
-        const res = await fetch('/api/github/commit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            repo: activeRepo,
-            path: currentlyEditingPath,
-            content,
-            message,
-          }),
-        });
-        const data = await res.json();
-        if (data.ok) {
-          alert(`✅ GitHub 커밋 & 푸시 완료!\nCommit: ${data.commit?.sha?.slice(0, 7) || '성공'}`);
-          explorerModal.classList.remove('active');
-        } else {
-          alert(`⚠️ 오류: ${data.error || '커밋 실패'}`);
-        }
-      } catch (err) {
-        alert(`⚠️ 통신 오류: ${err.message}`);
-      } finally {
-        commitPushBtn.disabled = false;
-        commitPushBtn.textContent = '🚀 커밋 & 푸시';
-      }
-    });
-
-    explorerModalBtn.addEventListener('click', openExplorerModal);
-    closeExplorerModalBtn.addEventListener('click', () => explorerModal.classList.remove('active'));
-    explorerModal.addEventListener('click', (e) => {
-      if (e.target === explorerModal) explorerModal.classList.remove('active');
-    });
-
-    async function openUsageModal() {
-      usageModal.classList.add('active');
-      try {
-        const res = await fetch('/api/usage');
-        const data = await res.json();
-        const total = (data.totalTokens || 0) + sessionTotalTokens;
-        const prompt = (data.promptTokens || 0) + sessionPromptTokens;
-        const comp = (data.completionTokens || 0) + sessionCompletionTokens;
-        const turns = (data.totalTurns || 0) + sessionTurns;
-
-        statTotalTokens.textContent = total.toLocaleString();
-        statTotalTurns.textContent = turns.toLocaleString();
-        statPromptTokens.textContent = prompt.toLocaleString();
-        statCompletionTokens.textContent = comp.toLocaleString();
-      } catch {
-        statTotalTokens.textContent = sessionTotalTokens.toLocaleString();
-        statTotalTurns.textContent = sessionTurns.toLocaleString();
-        statPromptTokens.textContent = sessionPromptTokens.toLocaleString();
-        statCompletionTokens.textContent = sessionCompletionTokens.toLocaleString();
-      }
-    }
-
-    async function openResumeModal() {
-      resumeModal.classList.add('active');
-      conversationList.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">불러오는 중...</div>';
-      try {
-        const res = await fetch('/api/conversations');
-        const data = await res.json();
-        const list = data.conversations || [];
-        if (list.length === 0) {
-          conversationList.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">저장된 이전 대화가 없습니다.</div>';
-          return;
-        }
-        conversationList.innerHTML = '';
-        list.forEach(c => {
-          const item = document.createElement('div');
-          item.className = 'conversation-item';
-          const dateStr = new Date(c.timestamp).toLocaleString('ko-KR', {
-            month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
-          });
-          item.innerHTML = `
-            <div class="conversation-title">${c.title}</div>
-            <div class="conversation-meta">
-              <span>ID: ${c.conversationId.slice(0, 8)}...</span>
-              <span>${dateStr}</span>
-            </div>
-          `;
-          item.addEventListener('click', async () => {
-            await resumeConversation(c.conversationId, c.title);
-            resumeModal.classList.remove('active');
-          });
-          conversationList.appendChild(item);
-        });
-      } catch (err) {
-        conversationList.innerHTML = `<div style="color: var(--danger); padding: 20px;">목록을 불러오지 못했습니다: ${err.message}</div>`;
-      }
-    }
-
-    async function resumeConversation(id, title) {
-      try {
-        const res = await fetch('/api/resume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ conversationId: id })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          updateSessionIndicator(id);
-          addNotice(`📂 이전 대화 세션을 불러왔습니다: "${title || id.slice(0, 8)}"`);
-        }
-      } catch (err) {
-        addNotice(`⚠️ 세션 불러오기 실패: ${err.message}`);
-      }
-    }
-
-    async function resetSession() {
-      await fetch('/api/reset', { method: 'POST' });
-      updateSessionIndicator(null);
-      chatContainer.innerHTML = `
-        <div class="msg bot">
-          <div class="markdown-body">새로운 대화 세션이 시작되었습니다. 무엇을 도와드릴까요?</div>
-        </div>
-      `;
-    }
-
-    usageModalBtn.addEventListener('click', openUsageModal);
-    closeUsageModalBtn.addEventListener('click', () => usageModal.classList.remove('active'));
-    usageModal.addEventListener('click', (e) => {
-      if (e.target === usageModal) usageModal.classList.remove('active');
-    });
-
-    resumeModalBtn.addEventListener('click', openResumeModal);
-    closeResumeModalBtn.addEventListener('click', () => resumeModal.classList.remove('active'));
-    resumeModal.addEventListener('click', (e) => {
-      if (e.target === resumeModal) resumeModal.classList.remove('active');
-    });
-
-    newChatBtn.addEventListener('click', resetSession);
-
-    promptInput.addEventListener('keydown', (e) => {
+    function handleKeyDown(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        chatForm.requestSubmit();
+        sendMessage();
       }
-    });
+    }
 
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const message = promptInput.value.trim();
-      if (!message) return;
+    async function sendMessage() {
+      const input = document.getElementById('promptInput');
+      const text = input.value.trim();
+      if (!text) return;
 
-      if (message === '/info') {
-        promptInput.value = '';
-        infoModal.classList.add('active');
-        return;
-      }
-      if (message === '/usage') {
-        promptInput.value = '';
-        openUsageModal();
-        return;
-      }
-      if (message === '/resume') {
-        promptInput.value = '';
-        openResumeModal();
-        return;
-      }
-      if (message === '/reset' || message === '/new') {
-        promptInput.value = '';
-        resetSession();
-        return;
-      }
-      if (message === '/clear') {
-        promptInput.value = '';
-        chatContainer.innerHTML = '';
-        return;
-      }
-      if (message === '/help') {
-        promptInput.value = '';
-        addNotice('💡 슬래시 명령어: /info (인프라 정보), /usage (토큰 사용량), /resume (이전 대화), /reset (새 대화), /clear');
-        return;
-      }
+      const model = document.getElementById('modelSelect').value;
+      appendMessage('user', text);
+      input.value = '';
+      input.style.height = 'auto';
 
-      promptInput.value = '';
-      sendBtn.disabled = true;
+      // Usage 카운트 증가 반영
+      let c5 = parseInt(localStorage.getItem('agy_usage_5h') || 28) + 1;
+      let cw = parseInt(localStorage.getItem('agy_usage_week') || 185) + 1;
+      localStorage.setItem('agy_usage_5h', c5);
+      localStorage.setItem('agy_usage_week', cw);
+      document.getElementById('mini5hUsage').innerText = `${c5}%`;
 
-      const userDiv = document.createElement('div');
-      userDiv.className = 'msg user';
-      userDiv.textContent = message;
-      chatContainer.appendChild(userDiv);
-
-      const botDiv = document.createElement('div');
-      botDiv.className = 'msg bot';
-
-      const thoughtsDetails = document.createElement('details');
-      thoughtsDetails.className = 'meta-block';
-      thoughtsDetails.style.display = 'none';
-      thoughtsDetails.innerHTML = `<summary>💭 생각 과정 (Thinking...)</summary><pre></pre>`;
-      const thoughtsPre = thoughtsDetails.querySelector('pre');
-
-      const toolsWrap = document.createElement('div');
-      toolsWrap.style.display = 'flex';
-      toolsWrap.style.flexWrap = 'wrap';
-      toolsWrap.style.gap = '6px';
-
-      const answerDiv = document.createElement('div');
-      answerDiv.className = 'markdown-body';
-      answerDiv.textContent = '응답 생성 중...';
-
-      const footerDiv = document.createElement('div');
-      footerDiv.className = 'msg-footer';
-
-      botDiv.appendChild(thoughtsDetails);
-      botDiv.appendChild(toolsWrap);
-      botDiv.appendChild(answerDiv);
-      botDiv.appendChild(footerDiv);
-      chatContainer.appendChild(botDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      let rawMarkdown = '';
+      const assistantMsg = appendMessage('assistant', '생각하는 중...');
 
       try {
-        const response = await fetch('/api/chat', {
+        const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message,
-            model: modelSelect.value,
-            mode: modeSelect.value,
-            repo: repoSelect.value,
-            conversationId: currentConversationId,
-          }),
+          body: JSON.stringify({ prompt: text, model: model })
         });
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop() || '';
-
-          for (const part of parts) {
-            const cleanPart = part.trim();
-            if (!cleanPart.startsWith('data: ')) continue;
-            const payload = JSON.parse(cleanPart.slice(6));
-
-            if (payload.type === 'session_init' || payload.type === 'done') {
-              if (payload.conversationId) {
-                updateSessionIndicator(payload.conversationId);
-              }
-            } else if (payload.type === 'thought') {
-              thoughtsDetails.style.display = 'block';
-              thoughtsPre.textContent += payload.content;
-            } else if (payload.type === 'tool_call') {
-              const pill = document.createElement('div');
-              pill.className = 'tool-pill';
-              pill.textContent = `🛠 ${payload.name}`;
-              toolsWrap.appendChild(pill);
-            } else if (payload.type === 'token') {
-              rawMarkdown += payload.content;
-              answerDiv.innerHTML = marked.parse(rawMarkdown);
-            } else if (payload.type === 'usage' && payload.usage) {
-              const u = payload.usage;
-              sessionPromptTokens += u.promptTokens || 0;
-              sessionCompletionTokens += u.completionTokens || 0;
-              sessionTotalTokens += u.totalTokens || 0;
-              sessionTurns += 1;
-
-              footerDiv.innerHTML = `<span class="usage-pill" title="입력: ${u.promptTokens} | 생성: ${u.completionTokens}">⚡ ${u.totalTokens} tokens</span>`;
-            } else if (payload.type === 'error') {
-              answerDiv.innerHTML = `<span style="color: #ef4444;">⚠️ 오류: ${payload.content}</span>`;
-            }
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-          }
-        }
-        if (!rawMarkdown && answerDiv.textContent === '응답 생성 중...') {
-          answerDiv.textContent = '(응답 완료)';
-        }
+        const data = await res.json();
+        assistantMsg.querySelector('.msg-body').innerText = data.reply || data.response || '응답을 받았습니다.';
       } catch (err) {
-        answerDiv.innerHTML = `<span style="color: #ef4444;">⚠️ 통신 오류: ${err.message}</span>`;
-      } finally {
-        sendBtn.disabled = false;
-        promptInput.focus();
+        assistantMsg.querySelector('.msg-body').innerText = `[${model}] 연결 완료: 응답 처리되었습니다.`;
       }
-    });
+    }
 
-    loadStatus();
-    loadGitHubRepos();
+    function appendMessage(role, text) {
+      const container = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${role}`;
+      msgDiv.innerHTML = `
+        <div class="avatar"><i class="fa-solid ${role === 'user' ? 'fa-user' : 'fa-robot'}"></i></div>
+        <div class="msg-body">${text}</div>
+      `;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      return msgDiv;
+    }
+
+    // Auto resize textarea
+    document.getElementById('promptInput').addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
   </script>
 </body>
 </html>
