@@ -7,13 +7,16 @@ admin.initializeApp();
 const db = admin.firestore();
 
 const PROJECT_ID = process.env.GCLOUD_PROJECT || 'agy-web-9f33e';
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
+const DEFAULT_REPO = 'syk-genon/agy-web';
+
 const auth = new GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/cloud-platform'],
 });
 
 const MODEL_LIST = [
-  { id: 'gemini-4-argon', name: 'Gemini 4 Argon (Medium / 고성능 추론)' },
-  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (High / 초고속 응답)' },
+  { id: 'gemini-4-argon', name: '⚡ Gemini 4 Argon (Medium / 고성능 추론)' },
+  { id: 'gemini-3.8-flash', name: '⚡ Gemini 3.8 Flash (High / 초고속 응답)' },
 ];
 
 function resolveModelName(reqModel) {
@@ -23,15 +26,149 @@ function resolveModelName(reqModel) {
   return 'gemini-4-argon';
 }
 
-function getSystemInstruction(mode) {
+// === User Infrastructure Knowledge & Reference Info ===
+const USER_INFRA_INFO = {
+  user: {
+    name: '심용기',
+    github: 'syk-genon',
+  },
+  firebaseProjects: [
+    {
+      id: 'agy-web-9f33e',
+      name: 'agy-web (Antigravity Console)',
+      url: 'https://sykagy.web.app',
+      consoleUrl: 'https://console.firebase.google.com/u/0/project/agy-web-9f33e/overview',
+      type: 'Cloud Functions 2nd Gen API & Web',
+      description: '현재 24시간 클라우드 웹 콘솔 및 백엔드',
+    },
+    {
+      id: 'smart-checklist-27254',
+      name: 'Smart Checklist',
+      url: 'https://smart-checklist-27254.web.app',
+      consoleUrl: 'https://console.firebase.google.com/u/0/project/smart-checklist-27254/overview',
+      type: 'Production Web App',
+      description: '스마트 일정 및 AI 체크리스트 웹앱',
+    },
+    {
+      id: 'ddongtop-bea1d',
+      name: 'ddongtop',
+      url: 'https://kkllai.web.app',
+      consoleUrl: 'https://console.firebase.google.com/u/0/project/ddongtop-bea1d/overview',
+      type: 'Auth & Service Hub',
+      description: 'AI 서비스 및 인증 도메인 허브',
+    },
+  ],
+  nvidiaBuild: {
+    apiUrl: 'https://integrate.api.nvidia.com/v1/chat/completions',
+    apiKey: process.env.NVIDIA_API_KEY || '',
+    defaultModel: 'nvidia/nemotron-3.5-super-vl-120b-a12b',
+    llamaModel: 'meta/llama-3.1-405b-instruct',
+    description: 'NVIDIA NIM 클라우드 추론 API 인프라',
+  },
+  github: {
+    username: 'syk-genon',
+    tokenHint: 'ghp_AfVK...k9Qx',
+    repos: ['syk-genon/agy-web', 'syk-genon/gitrepo', 'syk-genon/Claude_syk'],
+  },
+};
+
+// === GitHub REST API Helpers ===
+async function ghFetch(url, options = {}) {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'sykagy-app',
+    ...(options.headers || {}),
+  };
+  return fetch(url, { ...options, headers });
+}
+
+async function getGitHubRepos() {
+  const res = await ghFetch('https://api.github.com/user/repos?affiliation=owner,collaborator&sort=updated&per_page=30');
+  if (!res.ok) return [];
+  const repos = await res.json();
+  return Array.isArray(repos) ? repos.map((r) => ({ fullName: r.full_name, name: r.name, private: r.private, defaultBranch: r.default_branch })) : [];
+}
+
+async function getGitHubFiles(repo, path = '') {
+  const res = await ghFetch(`https://api.github.com/repos/${repo}/contents/${path}`);
+  if (!res.ok) return [];
+  const items = await res.json();
+  if (!Array.isArray(items)) return [];
+  return items.map((i) => ({ name: i.name, path: i.path, type: i.type, size: i.size }));
+}
+
+async function getGitHubFileContent(repo, path, ref = 'main') {
+  const res = await ghFetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${ref}`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.content) return null;
+  const content = Buffer.from(data.content, 'base64').toString('utf8');
+  return { content, sha: data.sha, path: data.path, size: data.size, htmlUrl: data.html_url };
+}
+
+async function commitGitHubFile(repo, path, content, commitMessage, branch = 'main') {
+  let sha = undefined;
+  try {
+    const existing = await ghFetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`);
+    if (existing.ok) {
+      const data = await existing.json();
+      sha = data.sha;
+    }
+  } catch {}
+
+  const body = {
+    message: commitMessage || `Update ${path} via Antigravity`,
+    content: Buffer.from(content, 'utf8').toString('base64'),
+    branch,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errData = await res.json();
+    throw new Error(errData.message || 'GitHub 파일 커밋 실패');
+  }
+  return await res.json();
+}
+
+function getSystemInstruction(mode, currentRepo) {
   let modeDesc = 'General Coding Assistant';
   if (mode === 'plan') {
-    modeDesc = 'Plan Mode: First understand user intent deeply, break the task into clear steps, and outline the architecture before presenting code.';
+    modeDesc = 'Plan Mode: Deeply analyze user requests, outline clear architecture steps, and propose changes before committing.';
   } else if (mode === 'accept-edits') {
-    modeDesc = 'Accept-Edits Mode: Provide production-ready, clean code snippets and direct replacements immediately.';
+    modeDesc = 'Accept-Edits Mode: Directly provide code modifications and prepare them for commit.';
   }
-  return `You are Antigravity (agy), an AI coding assistant running 24/7 on Firebase Cloud.
+  return `You are Antigravity (agy), an AI coding agent running 24/7 on Firebase Cloud, powered by Google Vertex AI.
+User: 심용기 (GitHub: syk-genon)
+Active GitHub Repository: ${currentRepo}
 Mode: ${modeDesc}
+
+[User's Pre-Configured Infrastructure Reference Knowledge]:
+- Firebase Project 1: agy-web (ID: agy-web-9f33e) -> https://sykagy.web.app
+- Firebase Project 2: Smart Checklist (ID: smart-checklist-27254) -> https://smart-checklist-27254.web.app
+- Firebase Project 3: ddongtop (ID: ddongtop-bea1d) -> https://kkllai.web.app
+- NVIDIA Build Info:
+  * API URL: https://integrate.api.nvidia.com/v1/chat/completions
+  * API Key: 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
+  * Models: nvidia/nemotron-3.5-super-vl-120b-a12b, meta/llama-3.1-405b-instruct
+- GitHub Repos: syk-genon/agy-web, syk-genon/gitrepo, syk-genon/Claude_syk
+
+When the user asks you to write code or modify files for any of their projects, you already have all their exact project IDs, endpoints, and credentials ready.
+When the user asks you to create or modify a file in the active repository, provide your changes in this block:
+\`\`\`github_commit
+{
+  "path": "relative/path/to/file.ext",
+  "content": "Full code content of the file",
+  "message": "Clear git commit message"
+}
+\`\`\`
+The backend will automatically execute the commit directly to GitHub and output the commit URL.
 Always reply helpfully, accurately, and naturally in Korean unless instructed otherwise.`;
 }
 
@@ -51,6 +188,7 @@ exports.api = onRequest(
       res.status(200).json({
         sdk_available: true,
         cloud: true,
+        github: Boolean(GITHUB_TOKEN),
         platform: 'Firebase Cloud Functions 2nd Gen',
         project: PROJECT_ID,
       });
@@ -63,7 +201,74 @@ exports.api = onRequest(
       return;
     }
 
-    // 3. Overall Usage Stats
+    // 3. User Infrastructure & Projects Reference Info
+    if (req.method === 'GET' && pathname === '/info') {
+      res.status(200).json(USER_INFRA_INFO);
+      return;
+    }
+
+    // 4. GitHub Repositories List
+    if (req.method === 'GET' && pathname === '/github/repos') {
+      try {
+        const repos = await getGitHubRepos();
+        res.status(200).json({ repos, defaultRepo: DEFAULT_REPO });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+
+    // 5. GitHub Files Explorer
+    if (req.method === 'GET' && pathname === '/github/files') {
+      const repo = url.searchParams.get('repo') || DEFAULT_REPO;
+      const dirPath = url.searchParams.get('path') || '';
+      try {
+        const files = await getGitHubFiles(repo, dirPath);
+        res.status(200).json({ repo, path: dirPath, files });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+
+    // 6. GitHub Single File Content
+    if (req.method === 'GET' && pathname === '/github/file') {
+      const repo = url.searchParams.get('repo') || DEFAULT_REPO;
+      const filePath = url.searchParams.get('path');
+      if (!filePath) {
+        res.status(400).json({ error: 'path 파라미터가 필요합니다.' });
+        return;
+      }
+      try {
+        const fileData = await getGitHubFileContent(repo, filePath);
+        if (!fileData) {
+          res.status(404).json({ error: '파일을 찾을 수 없습니다.' });
+          return;
+        }
+        res.status(200).json(fileData);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+
+    // 7. GitHub Direct Commit Endpoint
+    if (req.method === 'POST' && pathname === '/github/commit') {
+      const { repo = DEFAULT_REPO, path, content, message, branch = 'main' } = req.body || {};
+      if (!path || content === undefined) {
+        res.status(400).json({ error: 'path와 content가 필요합니다.' });
+        return;
+      }
+      try {
+        const result = await commitGitHubFile(repo, path, content, message, branch);
+        res.status(200).json({ ok: true, commit: result.commit, content: result.content });
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+
+    // 8. Overall Usage Stats
     if (req.method === 'GET' && pathname === '/usage') {
       try {
         const statsDoc = await db.collection('stats').doc('usage').get();
@@ -76,18 +281,12 @@ exports.api = onRequest(
           projectId: PROJECT_ID,
         });
       } catch {
-        res.status(200).json({
-          promptTokens: 0,
-          completionTokens: 0,
-          totalTokens: 0,
-          totalTurns: 0,
-          projectId: PROJECT_ID,
-        });
+        res.status(200).json({ promptTokens: 0, completionTokens: 0, totalTokens: 0, totalTurns: 0, projectId: PROJECT_ID });
       }
       return;
     }
 
-    // 4. Conversation History
+    // 9. Conversation History
     if (req.method === 'GET' && pathname === '/conversations') {
       try {
         const snap = await db.collection('conversations').orderBy('timestamp', 'desc').limit(20).get();
@@ -103,24 +302,25 @@ exports.api = onRequest(
       return;
     }
 
-    // 5. Reset Session
+    // 10. Reset Session
     if (req.method === 'POST' && pathname === '/reset') {
       res.status(200).json({ ok: true, message: '새로운 대화 세션이 시작되었습니다.' });
       return;
     }
 
-    // 6. Resume Session
+    // 11. Resume Session
     if (req.method === 'POST' && pathname === '/resume') {
       const { conversationId } = req.body || {};
       res.status(200).json({ ok: true, conversationId, message: '대화 세션을 불러왔습니다.' });
       return;
     }
 
-    // 7. Chat Streaming
+    // 12. Chat Streaming via Google Vertex AI
     if (req.method === 'POST' && pathname === '/chat') {
       const message = (req.body.message || '').trim();
       const modelId = req.body.model || 'gemini-4-argon';
       const mode = req.body.mode || 'auto';
+      const activeRepo = req.body.repo || DEFAULT_REPO;
       let conversationId = req.body.conversationId || crypto.randomUUID();
 
       if (!message) {
@@ -144,6 +344,17 @@ exports.api = onRequest(
       sendEvent({ type: 'session_init', conversationId });
 
       try {
+        let repoContext = '';
+        try {
+          const files = await getGitHubFiles(activeRepo, '');
+          if (files.length > 0) {
+            repoContext = `[Current Repository Root Files (${activeRepo})]:\n${files.map((f) => `- ${f.name} (${f.type})`).join('\n')}\n\n`;
+          }
+        } catch {}
+
+        let fullModelText = '';
+        let lastUsage = null;
+
         const client = await auth.getClient();
         const tokenRes = await client.getAccessToken();
         const accessToken = tokenRes.token || tokenRes;
@@ -158,10 +369,10 @@ exports.api = onRequest(
           }
         } catch {}
 
-        contents.push({ role: 'user', parts: [{ text: message }] });
+        contents.push({ role: 'user', parts: [{ text: `${repoContext}User Prompt:\n${message}` }] });
 
         if (modelName === 'gemini-4-argon' || mode === 'plan') {
-          sendEvent({ type: 'thought', content: '질문과 맥락을 깊이 분석하고 있습니다...\n' });
+          sendEvent({ type: 'thought', content: '저장소 맥락과 질문을 분석하고 있습니다...\n' });
         }
 
         const endpoint = `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/${modelName}:streamGenerateContent?alt=sse`;
@@ -175,7 +386,7 @@ exports.api = onRequest(
           body: JSON.stringify({
             contents,
             systemInstruction: {
-              parts: [{ text: getSystemInstruction(mode) }],
+              parts: [{ text: getSystemInstruction(mode, activeRepo) }],
             },
           }),
         });
@@ -185,8 +396,6 @@ exports.api = onRequest(
           throw new Error(`Vertex AI 호출 실패 (${upstreamRes.status}): ${errText}`);
         }
 
-        let fullModelText = '';
-        let lastUsage = null;
         const reader = upstreamRes.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -225,9 +434,33 @@ exports.api = onRequest(
           }
         }
 
+        // Automatic GitHub Commit detection from code block
+        const commitMatch = fullModelText.match(/```github_commit\s*([\s\S]*?)\s*```/);
+        if (commitMatch) {
+          try {
+            const commitSpec = JSON.parse(commitMatch[1]);
+            sendEvent({ type: 'tool_call', name: `GitHub Commit: ${commitSpec.path}` });
+
+            const commitResult = await commitGitHubFile(
+              activeRepo,
+              commitSpec.path,
+              commitSpec.content,
+              commitSpec.message || `Update ${commitSpec.path}`
+            );
+
+            const commitUrl = commitResult.commit?.html_url || `https://github.com/${activeRepo}`;
+            const commitNotice = `\n\n> 🚀 **[GitHub 커밋 완료!]** [\`${commitSpec.path}\` 커밋 내역 보기](${commitUrl})\n`;
+            sendEvent({ type: 'token', content: commitNotice });
+            fullModelText += commitNotice;
+          } catch (commitErr) {
+            const errNotice = `\n\n> ⚠️ **GitHub 커밋 실패:** ${commitErr.message}\n`;
+            sendEvent({ type: 'token', content: errNotice });
+            fullModelText += errNotice;
+          }
+        }
+
         if (lastUsage) {
           sendEvent({ type: 'usage', usage: lastUsage });
-          // Update cumulative stats in Firestore asynchronously
           try {
             await db.collection('stats').doc('usage').set(
               {
@@ -242,14 +475,17 @@ exports.api = onRequest(
           } catch {}
         }
 
-        // Save turn into Firestore
+        // Save conversation history to Firestore
         try {
-          contents.push({ role: 'model', parts: [{ text: fullModelText }] });
+          const contentsToSave = [
+            { role: 'user', parts: [{ text: message }] },
+            { role: 'model', parts: [{ text: fullModelText }] },
+          ];
           await db.collection('conversations').doc(conversationId).set(
             {
               title: message.slice(0, 60),
               timestamp: Date.now(),
-              messages: contents.slice(-20),
+              messages: admin.firestore.FieldValue.arrayUnion(...contentsToSave),
             },
             { merge: true }
           );
@@ -259,7 +495,7 @@ exports.api = onRequest(
         res.end();
       } catch (err) {
         console.error('Chat error:', err);
-        sendEvent({ type: 'error', content: `클라우드 실행 오류: ${err.message}` });
+        sendEvent({ type: 'error', content: `실행 오류: ${err.message}` });
         sendEvent({ type: 'done', conversationId });
         res.end();
       }
