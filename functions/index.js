@@ -15,15 +15,15 @@ const auth = new GoogleAuth({
 });
 
 const MODEL_LIST = [
+  { id: 'gemini-3.8-flash', name: '⚡ Gemini 3.8 Flash (High / 초고속 추천)' },
   { id: 'gemini-4-argon', name: '⚡ Gemini 4 Argon (Medium / 고성능 추론)' },
-  { id: 'gemini-3.8-flash', name: '⚡ Gemini 3.8 Flash (High / 초고속 응답)' },
 ];
 
 function resolveModelName(reqModel) {
-  if (reqModel && reqModel.includes('flash')) {
-    return 'gemini-3.8-flash';
+  if (reqModel && reqModel.includes('argon')) {
+    return 'gemini-4-argon';
   }
-  return 'gemini-4-argon';
+  return 'gemini-3.8-flash';
 }
 
 // === User Infrastructure Knowledge & Reference Info ===
@@ -375,9 +375,10 @@ exports.api = onRequest(
           sendEvent({ type: 'thought', content: '저장소 맥락과 질문을 분석하고 있습니다...\n' });
         }
 
-        const endpoint = `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/${modelName}:streamGenerateContent?alt=sse`;
+        let activeModel = modelName;
+        let endpoint = `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/${activeModel}:streamGenerateContent?alt=sse`;
 
-        const upstreamRes = await fetch(endpoint, {
+        let upstreamRes = await fetch(endpoint, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -390,6 +391,26 @@ exports.api = onRequest(
             },
           }),
         });
+
+        // 429 Fallback to Gemini 3.8 Flash if Argon quota exhausted
+        if (!upstreamRes.ok && upstreamRes.status === 429 && activeModel !== 'gemini-3.8-flash') {
+          sendEvent({ type: 'thought', content: '💡 Gemini 4 할당량 초과(429)로 인해 고속 Gemini 3.8 Flash로 자동 전환하여 응답합니다...\n' });
+          activeModel = 'gemini-3.8-flash';
+          endpoint = `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/${activeModel}:streamGenerateContent?alt=sse`;
+          upstreamRes = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents,
+              systemInstruction: {
+                parts: [{ text: getSystemInstruction(mode, activeRepo) }],
+              },
+            }),
+          });
+        }
 
         if (!upstreamRes.ok) {
           const errText = await upstreamRes.text();
