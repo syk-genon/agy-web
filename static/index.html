@@ -20,6 +20,7 @@
       --tool-bg: #1c2638;
       --danger: #ef4444;
       --success: #22c55e;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -96,6 +97,15 @@
       background: var(--accent);
       color: #fff;
     }
+    .btn-action.info {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .btn-action.info:hover {
+      background: var(--warning);
+      color: #000;
+    }
     .session-indicator {
       font-size: 0.75rem;
       color: var(--muted);
@@ -170,18 +180,23 @@
       font-size: 0.78rem;
       color: #b7c0d8;
     }
-    .tool-pill {
-      display: inline-flex;
+    .msg-footer {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      background: var(--tool-bg);
-      border: 1px solid #334155;
-      color: #93c5fd;
-      padding: 4px 9px;
-      border-radius: 6px;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .usage-pill {
+      font-size: 0.73rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 7px;
+      border-radius: 999px;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     }
+
     .markdown-body pre {
       background: #090b10;
       padding: 12px;
@@ -239,7 +254,7 @@
       cursor: not-allowed;
     }
 
-    /* Modal */
+    /* Modals */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -278,11 +293,11 @@
       cursor: pointer;
     }
     .modal-body {
-      padding: 14px 18px;
+      padding: 16px 18px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
     .conversation-item {
       padding: 10px 14px;
@@ -310,6 +325,57 @@
       display: flex;
       justify-content: space-between;
     }
+
+    /* Usage Cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-card .label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .stat-card .val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #93bbfc;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    .stat-card .val.gold { color: #fbbf24; }
+    .stat-card .val.green { color: #34d399; }
+    .usage-note {
+      font-size: 0.8rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      line-height: 1.5;
+    }
+    .console-link-btn {
+      display: block;
+      text-align: center;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      margin-top: 6px;
+    }
+    .console-link-btn:hover { background: var(--accent-hover); }
   </style>
 </head>
 <body>
@@ -325,7 +391,8 @@
     <div class="controls-wrap">
       <!-- Model Selector -->
       <select id="modelSelect" title="모델 선택">
-        <option value="">모델 불러오는 중...</option>
+        <option value="gemini-4-argon">Gemini 4 Argon (Medium)</option>
+        <option value="gemini-3.8-flash">Gemini 3.8 Flash (High)</option>
       </select>
 
       <!-- Mode Selector -->
@@ -334,6 +401,9 @@
         <option value="plan">Plan (계획 수립)</option>
         <option value="accept-edits">Accept Edits (자동 적용)</option>
       </select>
+
+      <!-- Usage Button -->
+      <button id="usageModalBtn" class="btn-action info" title="토큰 사용량 확인">📊 사용량</button>
 
       <!-- Resume Button -->
       <button id="resumeModalBtn" class="btn-action primary" title="이전 대화 목록 불러오기 (/resume)">📂 대화 이어하기</button>
@@ -346,16 +416,16 @@
   <main id="chatContainer">
     <div class="msg bot">
       <div class="markdown-body">
-        안녕하세요! 웹 브라우저에서 동작하는 <strong>Antigravity (agy)</strong> 콘솔입니다.<br/>
-        상단에서 <strong>모델</strong>과 <strong>모드</strong>를 변경하거나, <strong>📂 대화 이어하기</strong>를 통해 이전 대화를 언제든 다시 불러올 수 있습니다.<br/><br/>
-        💡 <em>슬래시 명령어</em>: <code>/resume</code> (이전 대화 불러오기), <code>/reset</code> (새 대화), <code>/clear</code> (화면 지우기), <code>/help</code>
+        안녕하세요! <strong>sykagy.web.app</strong>에 오신 것을 환영합니다.<br/>
+        Google Vertex AI &amp; Firebase Cloud 24시간 인프라로 구동되는 <strong>Antigravity (agy)</strong> 웹 콘솔입니다.<br/>
+        상단의 <strong>📊 사용량</strong> 버튼을 누르면 실시간 토큰 사용 현황을 확인하실 수 있습니다.
       </div>
     </div>
   </main>
 
   <footer>
     <form id="chatForm" class="input-wrap">
-      <textarea id="promptInput" placeholder="메시지를 입력하세요... (/resume, /help 사용 가능)" required></textarea>
+      <textarea id="promptInput" placeholder="메시지를 입력하세요... (/resume, /usage, /help 지원)" required></textarea>
       <button type="submit" id="sendBtn" class="send-btn">전송</button>
     </form>
   </footer>
@@ -365,10 +435,48 @@
     <div class="modal-box">
       <div class="modal-header">
         <span>📂 이전 대화 불러오기 (/resume)</span>
-        <button id="closeModalBtn" class="modal-close">&times;</button>
+        <button id="closeResumeModalBtn" class="modal-close">&times;</button>
       </div>
       <div id="conversationList" class="modal-body">
         <div style="text-align: center; color: var(--muted); padding: 20px;">대화 목록을 불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Usage Modal -->
+  <div id="usageModal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span>📊 실시간 토큰 사용량 (Usage)</span>
+        <button id="closeUsageModalBtn" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="label">총 사용 토큰 (Total Tokens)</span>
+            <span id="statTotalTokens" class="val gold">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">총 대화 턴 수 (Turns)</span>
+            <span id="statTotalTurns" class="val green">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">입력 토큰 (Prompt Tokens)</span>
+            <span id="statPromptTokens" class="val">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="label">생성 토큰 (Output Tokens)</span>
+            <span id="statCompletionTokens" class="val">0</span>
+          </div>
+        </div>
+
+        <div class="usage-note">
+          💡 <strong>비용 안내</strong>: Firebase Blaze 및 Google Cloud Free Tier 할당량 내에서는 요금이 청구되지 않고 <strong>$0.00</strong>으로 유지됩니다.
+        </div>
+
+        <a href="https://console.firebase.google.com/u/0/project/agy-web-9f33e/usage/details" target="_blank" class="console-link-btn">
+          🔗 Firebase 공식 청구 &amp; 상세 사용량 콘솔 열기
+        </a>
       </div>
     </div>
   </div>
@@ -383,12 +491,29 @@
     const modelSelect = document.getElementById('modelSelect');
     const modeSelect = document.getElementById('modeSelect');
     const newChatBtn = document.getElementById('newChatBtn');
+
+    // Modals
     const resumeModalBtn = document.getElementById('resumeModalBtn');
     const resumeModal = document.getElementById('resumeModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
+    const closeResumeModalBtn = document.getElementById('closeResumeModalBtn');
     const conversationList = document.getElementById('conversationList');
 
+    const usageModalBtn = document.getElementById('usageModalBtn');
+    const usageModal = document.getElementById('usageModal');
+    const closeUsageModalBtn = document.getElementById('closeUsageModalBtn');
+
+    const statTotalTokens = document.getElementById('statTotalTokens');
+    const statTotalTurns = document.getElementById('statTotalTurns');
+    const statPromptTokens = document.getElementById('statPromptTokens');
+    const statCompletionTokens = document.getElementById('statCompletionTokens');
+
     let currentConversationId = null;
+
+    // Local Session Tokens Tracking
+    let sessionPromptTokens = 0;
+    let sessionCompletionTokens = 0;
+    let sessionTotalTokens = 0;
+    let sessionTurns = 0;
 
     function addNotice(text) {
       const div = document.createElement('div');
@@ -414,14 +539,11 @@
         const res = await fetch('/api/status');
         const data = await res.json();
         if (data.sdk_available) {
-          statusBadge.textContent = '준비됨';
+          statusBadge.textContent = '클라우드 24H 준비됨';
           statusBadge.className = 'status-badge';
         } else {
           statusBadge.textContent = '오류';
           statusBadge.className = 'status-badge warn';
-        }
-        if (data.conversation_id) {
-          updateSessionIndicator(data.conversation_id);
         }
       } catch {
         statusBadge.textContent = '오프라인';
@@ -429,24 +551,25 @@
       }
     }
 
-    async function loadModels() {
+    async function openUsageModal() {
+      usageModal.classList.add('active');
       try {
-        const res = await fetch('/api/models');
+        const res = await fetch('/api/usage');
         const data = await res.json();
-        modelSelect.innerHTML = '';
-        if (data.models && data.models.length > 0) {
-          data.models.forEach((m, idx) => {
-            const opt = document.createElement('option');
-            opt.value = m.id;
-            opt.textContent = m.name;
-            if (m.id.includes('argon') || idx === 0) {
-              opt.selected = true;
-            }
-            modelSelect.appendChild(opt);
-          });
-        }
-      } catch (err) {
-        modelSelect.innerHTML = '<option value="">기본 모델</option>';
+        const total = (data.totalTokens || 0) + sessionTotalTokens;
+        const prompt = (data.promptTokens || 0) + sessionPromptTokens;
+        const comp = (data.completionTokens || 0) + sessionCompletionTokens;
+        const turns = (data.totalTurns || 0) + sessionTurns;
+
+        statTotalTokens.textContent = total.toLocaleString();
+        statTotalTurns.textContent = turns.toLocaleString();
+        statPromptTokens.textContent = prompt.toLocaleString();
+        statCompletionTokens.textContent = comp.toLocaleString();
+      } catch {
+        statTotalTokens.textContent = sessionTotalTokens.toLocaleString();
+        statTotalTurns.textContent = sessionTurns.toLocaleString();
+        statPromptTokens.textContent = sessionPromptTokens.toLocaleString();
+        statCompletionTokens.textContent = sessionCompletionTokens.toLocaleString();
       }
     }
 
@@ -513,11 +636,18 @@
       `;
     }
 
+    usageModalBtn.addEventListener('click', openUsageModal);
+    closeUsageModalBtn.addEventListener('click', () => usageModal.classList.remove('active'));
+    usageModal.addEventListener('click', (e) => {
+      if (e.target === usageModal) usageModal.classList.remove('active');
+    });
+
     resumeModalBtn.addEventListener('click', openResumeModal);
-    closeModalBtn.addEventListener('click', () => resumeModal.classList.remove('active'));
+    closeResumeModalBtn.addEventListener('click', () => resumeModal.classList.remove('active'));
     resumeModal.addEventListener('click', (e) => {
       if (e.target === resumeModal) resumeModal.classList.remove('active');
     });
+
     newChatBtn.addEventListener('click', resetSession);
 
     promptInput.addEventListener('keydown', (e) => {
@@ -532,7 +662,11 @@
       const message = promptInput.value.trim();
       if (!message) return;
 
-      // Handle Slash Commands
+      if (message === '/usage') {
+        promptInput.value = '';
+        openUsageModal();
+        return;
+      }
       if (message === '/resume') {
         promptInput.value = '';
         openResumeModal();
@@ -550,7 +684,7 @@
       }
       if (message === '/help') {
         promptInput.value = '';
-        addNotice('💡 슬래시 명령어: /resume (이전 대화 목록), /reset (새 대화 세션), /clear (화면 지우기)');
+        addNotice('💡 슬래시 명령어: /usage (토큰 사용량), /resume (이전 대화 목록), /reset (새 대화), /clear (화면 지우기)');
         return;
       }
 
@@ -571,18 +705,16 @@
       thoughtsDetails.innerHTML = `<summary>💭 생각 과정 (Thinking...)</summary><pre></pre>`;
       const thoughtsPre = thoughtsDetails.querySelector('pre');
 
-      const toolsWrap = document.createElement('div');
-      toolsWrap.style.display = 'flex';
-      toolsWrap.style.flexWrap = 'wrap';
-      toolsWrap.style.gap = '6px';
-
       const answerDiv = document.createElement('div');
       answerDiv.className = 'markdown-body';
       answerDiv.textContent = '응답 생성 중...';
 
+      const footerDiv = document.createElement('div');
+      footerDiv.className = 'msg-footer';
+
       botDiv.appendChild(thoughtsDetails);
-      botDiv.appendChild(toolsWrap);
       botDiv.appendChild(answerDiv);
+      botDiv.appendChild(footerDiv);
       chatContainer.appendChild(botDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
@@ -624,14 +756,17 @@
             } else if (payload.type === 'thought') {
               thoughtsDetails.style.display = 'block';
               thoughtsPre.textContent += payload.content;
-            } else if (payload.type === 'tool_call') {
-              const pill = document.createElement('div');
-              pill.className = 'tool-pill';
-              pill.textContent = `🛠 ${payload.name}`;
-              toolsWrap.appendChild(pill);
             } else if (payload.type === 'token') {
               rawMarkdown += payload.content;
               answerDiv.innerHTML = marked.parse(rawMarkdown);
+            } else if (payload.type === 'usage' && payload.usage) {
+              const u = payload.usage;
+              sessionPromptTokens += u.promptTokens || 0;
+              sessionCompletionTokens += u.completionTokens || 0;
+              sessionTotalTokens += u.totalTokens || 0;
+              sessionTurns += 1;
+
+              footerDiv.innerHTML = `<span class="usage-pill" title="입력: ${u.promptTokens} | 생성: ${u.completionTokens}">⚡ ${u.totalTokens} tokens</span>`;
             } else if (payload.type === 'error') {
               answerDiv.innerHTML = `<span style="color: #ef4444;">⚠️ 오류: ${payload.content}</span>`;
             }
@@ -650,7 +785,6 @@
     });
 
     loadStatus();
-    loadModels();
   </script>
 </body>
 </html>
