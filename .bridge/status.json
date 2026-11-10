@@ -1,6 +1,8 @@
 {
   "online": true,
-  "vm": "antigravity-ace-vm",
-  "pid": 89,
-  "startedAt": 1794300571887
+  "vm": "Firebase-VM (agy-server / 35.188.210.15)",
+  "agyBin": "/home/syk4441/.local/bin/agy",
+  "authenticated": false,
+  "authUrl": null,
+  "startedAt": 1794304753537
 }
