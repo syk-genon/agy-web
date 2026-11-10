@@ -101,8 +101,9 @@
     .model-badge {
       font-size: 10px;
       color: #93c5fd;
-      margin-top: 3px;
+      margin-top: 4px;
       display: block;
+      word-break: break-all;
     }
 
     /* Quota Panel */
@@ -165,6 +166,14 @@
       padding: 0 20px;
       font-size: 13px;
       color: var(--text-dim);
+    }
+    .multiturn-tag {
+      font-size: 10px;
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid #334155;
     }
     .feed-container {
       flex: 1;
@@ -284,30 +293,27 @@
     <div class="sidebar-title" style="margin-top: 4px;">Recent Sessions</div>
     <div class="session-list" id="sessionList"></div>
 
-    <!-- 총 6개 정밀 모델 셀렉터 -->
+    <!-- 실제 인프라 매핑 모델 셀렉터 -->
     <div class="sidebar-title">Active Engine</div>
     <div>
       <select class="select-box" id="modelSelector" onchange="onModelChanged()">
-        <optgroup label="Anthropic Claude">
-          <option value="claude-3-5-sonnet" selected>Claude 3.5 Sonnet</option>
-          <option value="claude-3-opus">Claude 3 Opus</option>
-          <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
+        <optgroup label="NVIDIA Build (Direct API)">
+          <option value="nvidia/nemotron-3.5-super-vl-120b-a12b" selected>Nemotron 3.5 Super VL 120B</option>
+          <option value="meta/llama-3.1-405b-instruct">Llama 3.1 405B Instruct</option>
         </optgroup>
         <optgroup label="Google Vertex AI">
-          <option value="vertex-gemini-15-pro">Gemini 1.5 Pro (agy Core)</option>
+          <option value="vertex-gemini-pro">Vertex AI (Gemini Pro / agy Core)</option>
         </optgroup>
-        <optgroup label="NVIDIA & Open Source">
-          <option value="nemotron-120b">Nemotron 120B (NVIDIA)</option>
-          <option value="llama-3-1-405b">Llama 3.1 405B (Meta)</option>
+        <optgroup label="Anthropic Claude">
+          <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
         </optgroup>
       </select>
-      <span class="model-badge" id="modelTierInfo">표준 토큰 가중치 / 5시간 롤링 세션</span>
+      <span class="model-badge" id="modelTierInfo">NVIDIA Build API / 5시간 세션 쿼터</span>
     </div>
 
-    <!-- 선택된 모델별 독립 실시간 쿼터 패널 -->
-    <div class="sidebar-title" id="quotaSectionTitle">Claude 3.5 Sonnet Quota</div>
+    <!-- 모델별 실시간 쿼터 -->
+    <div class="sidebar-title" id="quotaSectionTitle">Quota Status</div>
     <div class="usage-panel">
-      <!-- 5시간 롤링 윈도우 -->
       <div>
         <div class="gauge-header">
           <span class="gauge-title">5시간 세션 쿼터</span>
@@ -322,10 +328,9 @@
         </div>
       </div>
 
-      <!-- 주간 누적 쿼터 -->
       <div>
         <div class="gauge-header">
-          <span class="gauge-title">주간 총 연산량</span>
+          <span class="gauge-title">주간 누적 쿼터</span>
           <span class="gauge-stat" id="weeklyUsedPercent">사용 0%</span>
         </div>
         <div class="progress-bar">
@@ -343,7 +348,7 @@
   <main id="main">
     <div class="header-bar">
       <span id="currentSessionTitle">메모 세션 #1</span>
-      <span id="stealthBadge" style="font-size:11px; color:#52525b;">Encrypted Memo Mode</span>
+      <span class="multiturn-tag">Multi-Turn Context ON</span>
     </div>
 
     <div class="feed-container" id="feedContainer"></div>
@@ -355,20 +360,15 @@
   </main>
 
   <script>
-    // 모델별 특성 및 토큰/연산 가중치 정의
     const MODEL_PROFILES = {
-      "claude-3-5-sonnet": { name: "Claude 3.5 Sonnet", weight: 2.2, tier: "스마트 롤링 세션 (균형형)" },
-      "claude-3-opus": { name: "Claude 3 Opus", weight: 5.0, tier: "헤비 연산 모드 (쿼터 소모 큼)" },
-      "claude-3-5-haiku": { name: "Claude 3.5 Haiku", weight: 0.8, tier: "초고속 경량 모드 (대용량 쿼터)" },
-      "vertex-gemini-15-pro": { name: "Gemini 1.5 Pro", weight: 1.8, tier: "Vertex AI 엔터프라이즈 풀" },
-      "nemotron-120b": { name: "Nemotron 120B", weight: 2.0, tier: "NVIDIA Build API 쿼터" },
-      "llama-3-1-405b": { name: "Llama 3.1 405B", weight: 4.5, tier: "405B 초거대 파라미터 쿼터" }
+      "nvidia/nemotron-3.5-super-vl-120b-a12b": { name: "Nemotron 120B", weight: 2.0, tier: "NVIDIA Build API / 120B 파라미터" },
+      "meta/llama-3.1-405b-instruct": { name: "Llama 3.1 405B", weight: 4.5, tier: "NVIDIA Build API / 405B 초거대 파라미터" },
+      "vertex-gemini-pro": { name: "Vertex AI (Gemini)", weight: 1.8, tier: "Google Cloud Vertex AI Enterprise" },
+      "claude-3-5-sonnet": { name: "Claude 3.5 Sonnet", weight: 2.5, tier: "Anthropic API 롤링 윈도우" }
     };
 
     let sessions = JSON.parse(localStorage.getItem("agy_sessions") || "[]");
     let currentSessionId = localStorage.getItem("agy_current_session") || null;
-    
-    // 모델별 분리된 쿼터 로그 { modelKey: [ { ts: 1234567, costPct: 2.2 }, ... ] }
     let modelUsageLogs = JSON.parse(localStorage.getItem("agy_model_usage_logs") || "{}");
 
     function getSelectedModel() {
@@ -381,7 +381,7 @@
 
     function updateUsageGauges() {
       const modelKey = getSelectedModel();
-      const profile = MODEL_PROFILES[modelKey] || { name: modelKey, weight: 2.0, tier: "기본 모델" };
+      const profile = MODEL_PROFILES[modelKey] || { name: modelKey, weight: 2.0, tier: "기본 엔진" };
       
       document.getElementById("quotaSectionTitle").textContent = `${profile.name} 쿼터`;
       document.getElementById("modelTierInfo").textContent = profile.tier;
@@ -390,26 +390,18 @@
       const fiveHoursAgo = now - (5 * 60 * 60 * 1000);
       const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
-      if (!modelUsageLogs[modelKey]) {
-        modelUsageLogs[modelKey] = [];
-      }
-
-      // 7일 지난 오래된 데이터 제거
+      if (!modelUsageLogs[modelKey]) modelUsageLogs[modelKey] = [];
       modelUsageLogs[modelKey] = modelUsageLogs[modelKey].filter(log => log.ts >= sevenDaysAgo);
       localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
 
       const currentLogs = modelUsageLogs[modelKey];
-
-      // 5시간 롤링 윈도우 내 사용량 합산 (%)
       const sessionLogs = currentLogs.filter(log => log.ts >= fiveHoursAgo);
       const sessionUsedPct = Math.min(100, Math.round(sessionLogs.reduce((acc, cur) => acc + cur.costPct, 0)));
       const sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
 
-      // 7일간 주간 쿼터 합산 (%)
       const weeklyTotalPct = Math.min(100, Math.round(currentLogs.reduce((acc, cur) => acc + (cur.costPct * 0.4), 0)));
       const weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
 
-      // 5시간 리셋 예상 시간
       let sessionResetText = "5시간 주기";
       if (sessionLogs.length > 0) {
         const oldest = sessionLogs[0].ts;
@@ -421,7 +413,6 @@
         }
       }
 
-      // DOM 업데이트 - 5시간 세션
       document.getElementById("sessionUsedPercent").textContent = `사용 ${sessionUsedPct}%`;
       document.getElementById("sessionRemainingPercent").textContent = `${sessionRemainPct}%`;
       const sessBar = document.getElementById("sessionProgressBar");
@@ -429,7 +420,6 @@
       sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 55 ? 'warning' : ''}`;
       document.getElementById("sessionResetTime").textContent = sessionResetText;
 
-      // DOM 업데이트 - 주간 쿼터
       document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyTotalPct}%`;
       document.getElementById("weeklyRemainingPercent").textContent = `${weeklyRemainPct}%`;
       const weekBar = document.getElementById("weeklyProgressBar");
@@ -439,7 +429,6 @@
 
     function recordUsage(modelKey, promptLength) {
       const profile = MODEL_PROFILES[modelKey] || { weight: 2.0 };
-      // 텍스트 길이에 따라 실제 연산/토큰 가중치 비례 적용 (최소 1.0% ~ 5.5%)
       const lengthMultiplier = Math.min(2.5, 1 + (promptLength / 800));
       const costPct = parseFloat((profile.weight * lengthMultiplier).toFixed(1));
 
@@ -529,7 +518,7 @@
       feed.innerHTML = "";
       const sess = getCurrentSession();
       if (!sess || !sess.items || sess.items.length === 0) {
-        feed.innerHTML = `<div style="color: #4b5563; font-size: 13px; text-align: center; margin-top: 40px;">새로운 질문이나 아이디어를 남기면 백그라운드 연산 후 댓글로 추가됩니다.</div>`;
+        feed.innerHTML = `<div style="color: #4b5563; font-size: 13px; text-align: center; margin-top: 40px;">새로운 질문이나 아이디어를 남기면 백그라운드 연산 후 댓글로 추가됩니다. (멀티턴 컨텍스트 유지)</div>`;
         return;
       }
 
@@ -565,14 +554,27 @@
       input.value = "";
       btn.disabled = true;
 
-      // 질문 길이와 모델 가중치에 따른 % 소모 기록
-      recordUsage(selectedModel, text.length);
-
       const sess = getCurrentSession();
       if (sess.items.length === 0) {
         sess.title = text.slice(0, 18) + (text.length > 18 ? '...' : '');
         renderSessionList();
       }
+
+      // ★ [핵심 멀티턴 생성]: 이전 대화 내역 전체를 messages 배열로 조립
+      const conversationHistory = [];
+      sess.items.forEach(item => {
+        if (item.question) {
+          conversationHistory.push({ role: "user", content: item.question });
+        }
+        if (item.answer && !item.answer.startsWith("[")) {
+          conversationHistory.push({ role: "assistant", content: item.answer });
+        }
+      });
+      // 이번 새 질문 추가
+      conversationHistory.push({ role: "user", content: text });
+
+      // 쿼터 누적 기록
+      recordUsage(selectedModel, text.length);
 
       const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const itemIndex = sess.items.length;
@@ -598,6 +600,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prompt: text,
+            messages: conversationHistory, // ★ 전체 멀티턴 히스토리 전달
             model: selectedModel,
             sessionId: sess.id
           })
