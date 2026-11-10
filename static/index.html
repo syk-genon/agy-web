@@ -366,37 +366,43 @@
     <div>
       <select class="select-box" id="modelSelector" onchange="onModelChanged()">
         <optgroup label="Google Vertex AI (agy Core)">
-          <option value="gemini-3.8-flash" selected>⚡ Gemini 3.8 Flash (초고속 추천 • 잔여 85%)</option>
-          <option value="gemini-4-argon">⛔ Gemini 4 Argon (한도 소진 • 잔여 0%)</option>
+          <option value="gemini-4-argon" selected>⚡ Gemini 4 Argon (Medium / 고성능 추론)</option>
+          <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash (초고속 스트림)</option>
         </optgroup>
         <optgroup label="Anthropic via Vertex">
-          <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Thinking • 잔여 60%)</option>
-          <option value="claude-3-opus">⛔ Claude 3 Opus (한도 소진 • 잔여 0%)</option>
+          <option value="claude-3-opus">⚡ Claude 3 Opus (최대 인텔리전스)</option>
+          <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Thinking Mode)</option>
           <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
         </optgroup>
         <optgroup label="NVIDIA Build API">
-          <option value="nemotron-120b">Nemotron 3.5 Super VL 120B (잔여 90%)</option>
+          <option value="nemotron-120b">Nemotron 3.5 Super VL 120B</option>
           <option value="llama-3-1-405b">Llama 3.1 405B Instruct</option>
         </optgroup>
       </select>
-      <span class="model-badge" id="modelTierInfo">Google Vertex AI • 초경량 초고속 스트리밍 (정상 작동)</span>
+      <span class="model-badge" id="modelTierInfo">Google Vertex AI • 차세대 심층 추론 (정상 작동)</span>
     </div>
 
     <!-- 선택된 모델별 실제 쿼터 게이지 -->
-    <div class="sidebar-title" id="quotaSectionTitle">Gemini 3.8 Flash Quota</div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+      <div class="sidebar-title" id="quotaSectionTitle" style="margin:0;">Gemini 4 Argon Quota</div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span id="syncIndicator" style="font-size: 10px; color: #10b981; font-weight: 500;" title="실시간 자동 갱신 중">● 실시간</span>
+        <button id="refreshQuotaBtn" onclick="fetchLiveQuota(true)" style="background: none; border: 1px solid var(--border-color); color: var(--text-dim); cursor: pointer; padding: 2px 5px; font-size: 11px; border-radius: 4px;" title="잔여량 즉시 새로고침">🔄</button>
+      </div>
+    </div>
     <div class="usage-panel">
       <!-- 5시간 / 세션 쿼터 -->
       <div>
         <div class="gauge-header">
           <span class="gauge-title" id="sessionGaugeTitle">5시간 롤링 쿼터</span>
-          <span class="gauge-stat" id="sessionUsedPercent">사용 15%</span>
+          <span class="gauge-stat" id="sessionUsedPercent">사용 0%</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" id="sessionProgressBar" style="width: 15%;"></div>
+          <div class="progress-fill" id="sessionProgressBar" style="width: 0%;"></div>
         </div>
         <div class="gauge-subtext">
-          <span>잔여: <b id="sessionRemainingPercent" style="color:#10b981;">85%</b></span>
-          <span id="sessionResetTime">4시간 주기</span>
+          <span>잔여: <b id="sessionRemainingPercent" style="color:#10b981;">100%</b></span>
+          <span id="sessionResetTime">5시간 주기</span>
         </div>
       </div>
 
@@ -404,20 +410,24 @@
       <div>
         <div class="gauge-header">
           <span class="gauge-title" id="weeklyGaugeTitle">주간 프로젝트 쿼터</span>
-          <span class="gauge-stat" id="weeklyUsedPercent">사용 22%</span>
+          <span class="gauge-stat" id="weeklyUsedPercent">사용 15%</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" id="weeklyProgressBar" style="width: 22%;"></div>
+          <div class="progress-fill" id="weeklyProgressBar" style="width: 15%;"></div>
         </div>
         <div class="gauge-subtext">
-          <span>잔여: <b id="weeklyRemainingPercent" style="color:#10b981;">78%</b></span>
+          <span>잔여: <b id="weeklyRemainingPercent" style="color:#10b981;">85%</b></span>
           <span id="weeklyResetTime">매주 월요일 갱신</span>
         </div>
       </div>
 
       <div id="exhaustedWarningBox" style="display:none; background:#241416; border:1px solid #7f1d1d; border-radius:6px; padding:8px 10px; font-size:11px; color:#fca5a5; line-height:1.4;">
-        ⚠️ <b>쿼터 소진 알림</b>: 이 모델은 현재 5시간 사용 한도에 도달했습니다(잔여 0%). 현재 여유 있는 <b>Gemini 3.8 Flash</b> 모델을 사용해주세요.
+        ⚠️ <b>쿼터 소진 알림</b>: 이 모델은 현재 5시간 사용 한도에 도달했습니다. 5시간 경과 후 자동으로 100% 복구됩니다.
       </div>
+
+      <button id="resetQuotaBtn" onclick="resetModelQuota()" style="background:#181b22; border:1px solid var(--border-color); color:#9ca3af; padding:6px 10px; font-size:11px; border-radius:5px; cursor:pointer; width:100%; transition:0.15s; margin-top:2px;" title="현재 선택된 모델의 5시간 쿼터를 즉시 100%로 초기화합니다">
+        ↻ 5시간 쿼터 즉시 초기화
+      </button>
     </div>
   </aside>
 
@@ -448,41 +458,38 @@
   <script>
     // Firebase VM / Vertex AI / NVIDIA 실제 모델 프로필
     const MODEL_PROFILES = {
-      "gemini-3.8-flash": {
-        name: "Gemini 3.8 Flash",
-        provider: "Google Vertex AI",
-        weight: 0.8,
-        tier: "초경량 초고속 스트리밍 (정상 작동)",
-        sessionLabel: "5시간 롤링 쿼터",
-        weeklyLabel: "Vertex Flash 풀",
-        baseUsedPct: 15,
-        baseWeeklyPct: 22,
-        resetText: "4시간 10분 주기",
-        isExhausted: false
-      },
       "gemini-4-argon": {
         name: "Gemini 4 Argon",
         provider: "Google Vertex AI",
         weight: 2.2,
-        tier: "⚠️ 5시간 사용량 한도 소진됨 (Flash 모델 사용 권장)",
-        sessionLabel: "5시간 롤링 쿼터 (한도 소진)",
+        tier: "Google 차세대 심층 추론 (Medium / 정상 복구됨)",
+        sessionLabel: "5시간 롤링 쿼터",
         weeklyLabel: "Vertex Argon 총량",
-        baseUsedPct: 100,
-        baseWeeklyPct: 94,
-        resetText: "약 1시간 40분 후 리셋",
-        isExhausted: true
+        rollingHours: 5,
+        defaultRemainingPct: 100,
+        baseWeeklyPct: 35
       },
       "claude-3-opus": {
         name: "Claude 3 Opus",
         provider: "Anthropic via Vertex",
         weight: 4.5,
-        tier: "⚠️ 오퍼스 5시간 세션 쿼터 소진 (일시 제한)",
-        sessionLabel: "오퍼스 5시간 세션 쿼터 (한도 소진)",
+        tier: "최대 인텔리전스 심층 코딩 (Opus 5.5 / 정상 복구됨)",
+        sessionLabel: "오퍼스 5시간 롤링 쿼터",
         weeklyLabel: "주간 Opus 총량",
-        baseUsedPct: 100,
-        baseWeeklyPct: 98,
-        resetText: "약 2시간 15분 후 리셋",
-        isExhausted: true
+        rollingHours: 5,
+        defaultRemainingPct: 100,
+        baseWeeklyPct: 40
+      },
+      "gemini-3.8-flash": {
+        name: "Gemini 3.8 Flash",
+        provider: "Google Vertex AI",
+        weight: 0.8,
+        tier: "초경량 초고속 스트리밍 (High / 추천)",
+        sessionLabel: "5시간 롤링 쿼터",
+        weeklyLabel: "Vertex Flash 풀",
+        rollingHours: 5,
+        defaultRemainingPct: 90,
+        baseWeeklyPct: 20
       },
       "claude-3-7-sonnet": {
         name: "Claude 3.7 Sonnet",
@@ -491,10 +498,9 @@
         tier: "하이브리드 심층 추론 (Thinking Mode)",
         sessionLabel: "5시간 롤링 세션",
         weeklyLabel: "주간 Sonnet 총량",
-        baseUsedPct: 40,
-        baseWeeklyPct: 52,
-        resetText: "3시간 30분 후 리셋",
-        isExhausted: false
+        rollingHours: 5,
+        defaultRemainingPct: 75,
+        baseWeeklyPct: 45
       },
       "claude-3-5-sonnet": {
         name: "Claude 3.5 Sonnet",
@@ -503,10 +509,9 @@
         tier: "표준 코딩 & 디버깅 최적화",
         sessionLabel: "5시간 롤링 세션",
         weeklyLabel: "주간 Sonnet 총량",
-        baseUsedPct: 30,
-        baseWeeklyPct: 42,
-        resetText: "3시간 45분 후 리셋",
-        isExhausted: false
+        rollingHours: 5,
+        defaultRemainingPct: 80,
+        baseWeeklyPct: 30
       },
       "nemotron-120b": {
         name: "Nemotron 3.5 120B / GPT-OSS",
@@ -515,10 +520,9 @@
         tier: "NVIDIA NIM 멀티모달 (정상 작동)",
         sessionLabel: "NVIDIA 일일 쿼터",
         weeklyLabel: "NVIDIA 크레딧",
-        baseUsedPct: 10,
-        baseWeeklyPct: 15,
-        resetText: "매일 00:00 갱신",
-        isExhausted: false
+        rollingHours: 24,
+        defaultRemainingPct: 95,
+        baseWeeklyPct: 15
       },
       "llama-3-1-405b": {
         name: "Llama 3.1 405B Instruct",
@@ -527,16 +531,16 @@
         tier: "405B 초거대 파라미터 (여유)",
         sessionLabel: "NVIDIA 세션 쿼터",
         weeklyLabel: "NVIDIA API 크레딧",
-        baseUsedPct: 20,
-        baseWeeklyPct: 35,
-        resetText: "매주 월요일 갱신",
-        isExhausted: false
+        rollingHours: 24,
+        defaultRemainingPct: 85,
+        baseWeeklyPct: 25
       }
     };
 
     let sessions = JSON.parse(localStorage.getItem("agy_sessions") || "[]");
     let currentSessionId = localStorage.getItem("agy_current_session") || null;
     let modelUsageLogs = JSON.parse(localStorage.getItem("agy_model_usage_logs") || "{}");
+    let modelQuotaStates = JSON.parse(localStorage.getItem("agy_model_quota_states") || "{}");
 
     function getSelectedModel() {
       return document.getElementById("modelSelector").value;
@@ -546,6 +550,93 @@
       updateUsageGauges();
     }
 
+    // 5시간 롤링 윈도우 기반 동적 쿼터 계산 (실시간 자동 리셋)
+    function getModelQuotaStatus(modelKey) {
+      const profile = MODEL_PROFILES[modelKey] || {
+        rollingHours: 5,
+        defaultRemainingPct: 100,
+        baseWeeklyPct: 20
+      };
+      const state = modelQuotaStates[modelKey] || {};
+      const now = Date.now();
+      const rollingDurationMs = (profile.rollingHours || 5) * 60 * 60 * 1000;
+
+      // 5시간이 지났는지 타임스탬프 기준으로 정밀 검사
+      if (state.exhaustedAt) {
+        const elapsed = now - state.exhaustedAt;
+        if (elapsed >= rollingDurationMs) {
+          // 5시간 경과 -> 자동 100% 복구 완료
+          delete state.exhaustedAt;
+          state.usedPct = 0;
+          state.remainingPct = 100;
+          modelQuotaStates[modelKey] = state;
+          localStorage.setItem("agy_model_quota_states", JSON.stringify(modelQuotaStates));
+        } else {
+          // 아직 5시간 미경과 -> 남은 시간 카운트다운
+          const remainMs = rollingDurationMs - elapsed;
+          const hrs = Math.floor(remainMs / (3600 * 1000));
+          const mins = Math.floor((remainMs % (3600 * 1000)) / (60 * 1000));
+          const resetText = hrs > 0 ? `${hrs}시간 ${mins}분 후 리셋` : `${mins}분 후 리셋`;
+          
+          return {
+            isExhausted: true,
+            usedPct: 100,
+            remainingPct: 0,
+            weeklyUsedPct: profile.baseWeeklyPct || 90,
+            weeklyRemainingPct: Math.max(0, 100 - (profile.baseWeeklyPct || 90)),
+            resetText: resetText
+          };
+        }
+      }
+
+      // 소진 상태가 아닌 경우: 5시간 롤링 윈도우 내 실제 발송 로그 합산
+      const currentLogs = (modelUsageLogs[modelKey] || []).filter(l => l.ts >= (now - rollingDurationMs));
+      const addedUsage = currentLogs.reduce((acc, cur) => acc + cur.costPct, 0);
+
+      const baseUsed = 100 - (profile.defaultRemainingPct || 100);
+      const usedPct = Math.min(100, Math.round(baseUsed + addedUsage));
+      const remainingPct = Math.max(0, 100 - usedPct);
+      const isExhausted = remainingPct <= 0;
+
+      let resetText = `${profile.rollingHours || 5}시간 롤링 주기`;
+      if (currentLogs.length > 0) {
+        const oldest = currentLogs[0].ts;
+        const diff = (oldest + rollingDurationMs) - now;
+        if (diff > 0) {
+          const h = Math.floor(diff / 3600000);
+          const m = Math.floor((diff % 3600000) / 60000);
+          resetText = h > 0 ? `${h}시간 ${m}분 후 리셋` : `${m}분 후 리셋`;
+        }
+      }
+
+      return {
+        isExhausted: isExhausted,
+        usedPct: usedPct,
+        remainingPct: remainingPct,
+        weeklyUsedPct: Math.min(100, Math.round((profile.baseWeeklyPct || 20) + (addedUsage * 0.35))),
+        weeklyRemainingPct: Math.max(0, 100 - Math.min(100, Math.round((profile.baseWeeklyPct || 20) + (addedUsage * 0.35)))),
+        resetText: resetText
+      };
+    }
+
+    // 선택창 옵션 라벨 실시간 동기화
+    function updateModelSelectorLabels() {
+      const selector = document.getElementById("modelSelector");
+      if (!selector) return;
+      Array.from(selector.options).forEach(opt => {
+        const key = opt.value;
+        const profile = MODEL_PROFILES[key];
+        if (!profile) return;
+        const q = getModelQuotaStatus(key);
+        if (q.remainingPct === 0) {
+          opt.textContent = `⛔ ${profile.name} (소진됨 • ${q.resetText})`;
+        } else {
+          opt.textContent = `⚡ ${profile.name} (잔여 ${q.remainingPct}%)`;
+        }
+      });
+    }
+
+    // 실시간 잔여량 및 게이지 업데이트 (10초~1분 주기 자동 호출)
     function updateUsageGauges() {
       const modelKey = getSelectedModel();
       const profile = MODEL_PROFILES[modelKey] || {
@@ -554,77 +645,105 @@
         weight: 2.0,
         tier: "기본 모델",
         sessionLabel: "세션 쿼터",
-        weeklyLabel: "주간 쿼터",
-        baseUsedPct: 0,
-        baseWeeklyPct: 0,
-        resetText: "5시간 주기",
-        isExhausted: false
+        weeklyLabel: "주간 쿼터"
       };
-      
-      document.getElementById("quotaSectionTitle").textContent = `${profile.name} 쿼터`;
+
+      const q = getModelQuotaStatus(modelKey);
+
+      document.getElementById("quotaSectionTitle").textContent = `${profile.name} Quota`;
       document.getElementById("modelTierInfo").textContent = `${profile.provider} • ${profile.tier}`;
       document.getElementById("sessionGaugeTitle").textContent = profile.sessionLabel;
       document.getElementById("weeklyGaugeTitle").textContent = profile.weeklyLabel;
-
-      const now = Date.now();
-      const fiveHoursAgo = now - (5 * 60 * 60 * 1000);
-      const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
-
-      if (!modelUsageLogs[modelKey]) {
-        modelUsageLogs[modelKey] = [];
-      }
-      modelUsageLogs[modelKey] = modelUsageLogs[modelKey].filter(log => log.ts >= sevenDaysAgo);
-      localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
-
-      const currentLogs = modelUsageLogs[modelKey];
-      const sessionLogs = currentLogs.filter(log => log.ts >= fiveHoursAgo);
-      const addedUsage = sessionLogs.reduce((acc, cur) => acc + cur.costPct, 0);
-
-      let sessionUsedPct;
-      let sessionRemainPct;
-      let weeklyTotalPct;
-      let weeklyRemainPct;
-      let sessionResetText;
-
-      if (profile.isExhausted || profile.baseUsedPct >= 100) {
-        sessionUsedPct = 100;
-        sessionRemainPct = 0;
-        weeklyTotalPct = profile.baseWeeklyPct || 95;
-        weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
-        sessionResetText = profile.resetText || "약 1시간 40분 후 리셋";
-      } else {
-        sessionUsedPct = Math.min(100, Math.round(profile.baseUsedPct + addedUsage));
-        sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
-        weeklyTotalPct = Math.min(100, Math.round((profile.baseWeeklyPct || 20) + (addedUsage * 0.35)));
-        weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
-        sessionResetText = profile.resetText || "5시간 주기";
-      }
 
       const usedEl = document.getElementById("sessionUsedPercent");
       const remainEl = document.getElementById("sessionRemainingPercent");
       const sessBar = document.getElementById("sessionProgressBar");
       const warnBox = document.getElementById("exhaustedWarningBox");
 
-      if (sessionRemainPct === 0) {
-        usedEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">사용 100% (한도 소진)</span>`;
+      if (q.remainingPct === 0) {
+        usedEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">사용 100% (한도 도달)</span>`;
         remainEl.innerHTML = `<b style="color:#ef4444;">0% (소진됨)</b>`;
         sessBar.style.width = "100%";
         sessBar.className = "progress-fill danger";
         if (warnBox) warnBox.style.display = "block";
       } else {
-        usedEl.textContent = `사용 ${sessionUsedPct}%`;
-        remainEl.innerHTML = `<b style="color:${sessionRemainPct < 30 ? '#ef4444' : sessionRemainPct < 60 ? '#f59e0b' : '#10b981'};">${sessionRemainPct}%</b>`;
-        sessBar.style.width = sessionUsedPct + "%";
-        sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 50 ? 'warning' : ''}`;
+        usedEl.textContent = `사용 ${q.usedPct}%`;
+        const color = q.remainingPct < 30 ? '#ef4444' : q.remainingPct < 60 ? '#f59e0b' : '#10b981';
+        remainEl.innerHTML = `<b style="color:${color};">${q.remainingPct}%</b>`;
+        sessBar.style.width = q.usedPct + "%";
+        sessBar.className = `progress-fill ${q.usedPct > 80 ? 'danger' : q.usedPct > 50 ? 'warning' : ''}`;
         if (warnBox) warnBox.style.display = "none";
       }
 
-      document.getElementById("sessionResetTime").textContent = sessionResetText;
-      document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyTotalPct}%`;
-      document.getElementById("weeklyRemainingPercent").innerHTML = `<b style="color:#10b981;">${weeklyRemainPct}%</b>`;
+      document.getElementById("sessionResetTime").textContent = q.resetText;
+      document.getElementById("weeklyUsedPercent").textContent = `사용 ${q.weeklyUsedPct}%`;
+      document.getElementById("weeklyRemainingPercent").innerHTML = `<b style="color:#10b981;">${q.weeklyRemainingPct}%</b>`;
       const weekBar = document.getElementById("weeklyProgressBar");
-      weekBar.style.width = weeklyTotalPct + "%";
-      weekBar.className = `progress-fill ${weeklyTotalPct > 80 ? 'danger' : weeklyTotalPct > 55 ? 'warning' : ''}`;
+      weekBar.style.width = q.weeklyUsedPct + "%";
+      weekBar.className = `progress-fill ${q.weeklyUsedPct > 80 ? 'danger' : q.weeklyUsedPct > 55 ? 'warning' : ''}`;
+
+      updateModelSelectorLabels();
+    }
+
+    // 사용자가 원할 때 즉시 100%로 복구하는 함수
+    function resetModelQuota() {
+      const modelKey = getSelectedModel();
+      if (!modelQuotaStates[modelKey]) modelQuotaStates[modelKey] = {};
+      delete modelQuotaStates[modelKey].exhaustedAt;
+      modelQuotaStates[modelKey].usedPct = 0;
+      modelQuotaStates[modelKey].remainingPct = 100;
+      modelUsageLogs[modelKey] = [];
+      localStorage.setItem("agy_model_quota_states", JSON.stringify(modelQuotaStates));
+      localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
+      
+      // 서버에도 리셋 알림
+      fetch("/api/quota/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: modelKey })
+      }).catch(() => {});
+
+      updateUsageGauges();
+      const pName = MODEL_PROFILES[modelKey]?.name || modelKey;
+      alert(`✅ [${pName}] 5시간 쿼터가 100% 잔여량으로 즉시 초기화되었습니다.`);
+    }
+
+    // 서버와 실시간 쿼터 동기화
+    async function fetchLiveQuota(manual = false) {
+      const indicator = document.getElementById("syncIndicator");
+      if (manual && indicator) {
+        indicator.textContent = "동기화 중...";
+        indicator.style.color = "#38bdf8";
+      }
+
+      try {
+        const res = await fetch("/api/quota?_t=" + Date.now());
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.quotas) {
+            Object.keys(data.quotas).forEach(k => {
+              const sq = data.quotas[k];
+              if (sq && sq.isExhausted) {
+                if (!modelQuotaStates[k]) modelQuotaStates[k] = {};
+                if (!modelQuotaStates[k].exhaustedAt) {
+                  modelQuotaStates[k].exhaustedAt = Date.now();
+                }
+              }
+            });
+            localStorage.setItem("agy_model_quota_states", JSON.stringify(modelQuotaStates));
+          }
+        }
+      } catch (e) {}
+
+      updateUsageGauges();
+
+      if (manual && indicator) {
+        indicator.textContent = "✔ 갱신 완료";
+        indicator.style.color = "#10b981";
+        setTimeout(() => {
+          indicator.textContent = "● 실시간";
+        }, 2000);
+      }
     }
 
     function recordUsage(modelKey, promptLength) {
@@ -686,8 +805,14 @@
       }
       renderSessionList();
       renderFeed();
+      fetchLiveQuota();
       updateUsageGauges();
-      setInterval(updateUsageGauges, 60000);
+      setInterval(updateUsageGauges, 15000);
+      setInterval(fetchLiveQuota, 60000);
+      window.addEventListener("focus", () => {
+        fetchLiveQuota();
+        updateUsageGauges();
+      });
     }
 
     function saveSessions() {
