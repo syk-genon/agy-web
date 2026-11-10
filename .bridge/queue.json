@@ -1,13 +1,15 @@
 {
-  "status": "processing",
-  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
-  "request": {
+  "status": "completed",
+  "lastProcessedId": "auth_code_1794309840728",
+  "completedAt": 1794309859060,
+  "latestNote": {
     "id": "auth_code_1794309840728",
     "author": "User",
-    "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
-    "model": "gemini-3.8-flash",
     "content": "4/0AUn6Hd_ZV4J-6TRdelXueD2yfQ4rUYZJYGhzO-yxq3Ne3vEVlyXEqwKLKoMeXrmNPDCWew",
-    "timestamp": 1794309840728
-  },
-  "receivedAt": 1794309843367
+    "feedback": "### ✅ Firebase-VM (`agy-server`) `agy` CLI 인증 완료!\n정상적으로 Google 계정에 로그인되었으며 `antigravity-cli-daemon.service` (`Firebase-VM`)도 재시작되었습니다.\n\n이제 채팅창에 질문을 입력하시면 **`Firebase-VM`의 `agy` CLI**가 직접 실행하여 결과를 반환합니다!",
+    "model": "gemini-3.8-flash",
+    "timestamp": 1794309859060,
+    "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+    "viaFirebaseVm": true
+  }
 }
