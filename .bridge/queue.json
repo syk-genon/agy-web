@@ -1,15 +1,11 @@
 {
-  "status": "completed",
-  "lastProcessedId": "auth_code_1794305899294",
-  "completedAt": 1794305913214,
-  "latestNote": {
-    "id": "auth_code_1794305899294",
+  "status": "pending",
+  "request": {
+    "id": "login_req_1794306011415",
     "author": "User",
-    "content": "4/0AUn6Hd8Bxm7BxN2Z3RnbHwSqBo71NkJ4M2dYeCKu75ogLm66goLrpBfa61dKFvC5xiXanw",
-    "feedback": "이전 인증 프로세스가 종료된 상태였습니다 (exit=1).\n출력 로그:\n```text\nError: authentication timed out.\nerror: authentication failed or timed out\n\n```\n새 인증 링크: 👉 **[Google 로그인 링크](https://accounts.google.com/o/oauth2/auth?access_type=offline&client_id=1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com&code_challenge=aUomuOimV2WBQcIHfz_q5PcNBYcbtW4zmWgaNpxYImU&code_challenge_method=S256&prompt=consent&redirect_uri=https%3A%2F%2Fantigravity.google%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faicode+openid&state=1E12lfHDE9ltUwbbRmEA6g)**",
+    "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
-    "timestamp": 1794305913214,
-    "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
-    "viaFirebaseVm": true
+    "content": "!login",
+    "timestamp": 1794306011415
   }
 }
