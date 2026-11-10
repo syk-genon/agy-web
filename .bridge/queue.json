@@ -1,13 +1,15 @@
 {
-  "status": "processing",
-  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
-  "request": {
+  "status": "completed",
+  "lastProcessedId": "test_run_1794309879037",
+  "completedAt": 1794309891729,
+  "latestNote": {
     "id": "test_run_1794309879037",
     "author": "User",
-    "sessionId": "d43cc55a-9737-40ee-85f5-b32b47273274",
-    "model": "gemini-3.8-flash",
     "content": "현재 서버 호스트명과 위치를 짧게 알려줘",
-    "timestamp": 1794309879037
-  },
-  "receivedAt": 1794309880927
+    "feedback": "> **Firebase-VM (`agy`) 도구 실행**: `🛠 tool`\n\n- **호스트명**: `agy-server`\n- **서버 위치**: 미국 아이오와주 카운실블러프스 (Council Bluffs, Iowa, US / Google Cloud Datacenter)",
+    "model": "gemini-3.8-flash",
+    "timestamp": 1794309891729,
+    "conversationId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+    "viaFirebaseVm": true
+  }
 }
