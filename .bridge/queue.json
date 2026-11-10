@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "login_req_1794306011415",
     "author": "User",
@@ -7,5 +8,6 @@
     "model": "gemini-3.8-flash",
     "content": "!login",
     "timestamp": 1794306011415
-  }
+  },
+  "receivedAt": 1794306013885
 }
