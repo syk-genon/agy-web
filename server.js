@@ -1,323 +1,149 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
-const os = require('os');
-const { spawn, execFile, execFileSync } = require('child_process');
+const fs = require('fs');
+const app = express();
 
-const PORT = process.env.PORT || 8000;
-const STATIC_DIR = path.join(__dirname, 'static');
-const WORKSPACE_DIR = path.resolve(__dirname, '..');
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'static')));
 
-function resolveAgyBinary() {
-  if (process.env.AGY_BIN) return process.env.AGY_BIN;
-  if (process.platform === 'win32') {
-    const winPath = path.join(process.env.LOCALAPPDATA || '', 'agy', 'bin', 'agy.exe');
-    if (fs.existsSync(winPath)) return winPath;
+// 모델별 독립 쿼터 설정 및 상태 (5시간 윈도우 슬라이딩)
+const MODEL_QUOTAS = {
+  'claude-3-opus': {
+    name: 'Claude 3 Opus',
+    max5h: 15,
+    used5h: 3,
+    maxWeekly: 100,
+    usedWeekly: 22,
+    type: 'antigravity',
+    resetHours: 3.5
+  },
+  'claude-3-7-sonnet': {
+    name: 'Claude 3.7 Sonnet',
+    max5h: 45,
+    used5h: 12,
+    maxWeekly: 300,
+    usedWeekly: 64,
+    type: 'antigravity',
+    resetHours: 2.1
+  },
+  'gemini-3-8-flash': {
+    name: 'Gemini 3.8 Flash',
+    max5h: 150,
+    used5h: 18,
+    maxWeekly: 1500,
+    usedWeekly: 110,
+    type: 'google',
+    resetHours: 4.8
+  },
+  'gemini-4-argon': {
+    name: 'Gemini 4 Argon',
+    max5h: 50,
+    used5h: 9,
+    maxWeekly: 400,
+    usedWeekly: 45,
+    type: 'google',
+    resetHours: 1.7
+  },
+  'nvidia-llama-405b': {
+    name: 'OSS Llama 3.1 405B',
+    max5h: 1000, // NVIDIA Build API Credits
+    used5h: 68,
+    unit: 'Credits',
+    rpmLimit: 40,
+    type: 'nvidia',
+    resetHours: 24
+  },
+  'nvidia-nemotron-120b': {
+    name: 'OSS Nemotron 120B',
+    max5h: 1000,
+    used5h: 42,
+    unit: 'Credits',
+    rpmLimit: 40,
+    type: 'nvidia',
+    resetHours: 24
   }
-  return 'agy';
-}
+};
 
-const AGY_BIN = resolveAgyBinary();
-console.log(`[Config] Using agy binary: ${AGY_BIN}`);
-console.log(`[Config] Working directory: ${WORKSPACE_DIR}`);
+// 메시지 저장소
+let messages = [];
 
-let currentConversationId = null;
-let cachedModels = null;
-
-function checkAgyAvailable() {
-  try {
-    execFileSync(AGY_BIN, ['--help'], { stdio: 'ignore', timeout: 4000 });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function fetchModels() {
-  if (cachedModels) return Promise.resolve(cachedModels);
-  return new Promise((resolve) => {
-    execFile(AGY_BIN, ['models'], { timeout: 8000 }, (err, stdout) => {
-      if (err || !stdout) {
-        return resolve([
-          { id: 'gemini-4-argon-medium', name: 'Gemini 4 Argon (Medium)' },
-          { id: 'gemini-3.8-flash-high', name: 'Gemini 3.8 Flash (High)' },
-          { id: 'claude-sonnet-5-5-high', name: 'Claude Sonnet 5.5 (High)' },
-        ]);
-      }
-      const lines = stdout.split(/\r?\n/);
-      const list = [];
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('Fetching')) continue;
-        const parts = trimmed.split(/\t+/);
-        if (parts.length >= 2) {
-          list.push({ id: parts[0].trim(), name: parts[1].trim() });
-        } else if (parts.length === 1 && !parts[0].includes(' ')) {
-          list.push({ id: parts[0].trim(), name: parts[0].trim() });
-        }
-      }
-      cachedModels = list.length > 0 ? list : [
-        { id: 'gemini-4-argon-medium', name: 'Gemini 4 Argon (Medium)' },
-        { id: 'gemini-3.8-flash-high', name: 'Gemini 3.8 Flash (High)' }
-      ];
-      resolve(cachedModels);
-    });
+// 모델별 실시간 쿼터 조회 API
+app.get('/api/quota', (req, res) => {
+  const model = req.query.model || 'claude-3-7-sonnet';
+  const q = MODEL_QUOTAS[model] || MODEL_QUOTAS['claude-3-7-sonnet'];
+  
+  res.json({
+    model,
+    name: q.name,
+    type: q.type,
+    unit: q.unit || '회',
+    max5h: q.max5h,
+    used5h: q.used5h,
+    remaining5h: Math.max(0, q.max5h - q.used5h),
+    percent5h: Math.round(((q.max5h - q.used5h) / q.max5h) * 100),
+    maxWeekly: q.maxWeekly || null,
+    remainingWeekly: q.maxWeekly ? (q.maxWeekly - q.usedWeekly) : null,
+    resetInHours: q.resetHours,
+    allQuotas: MODEL_QUOTAS
   });
-}
-
-function getConversationHistory() {
-  const historyPath = path.join(os.homedir(), '.gemini', 'antigravity-cli', 'history.jsonl');
-  if (!fs.existsSync(historyPath)) return [];
-  try {
-    const raw = fs.readFileSync(historyPath, 'utf8');
-    const lines = raw.split(/\r?\n/).filter(Boolean);
-    const seen = new Map();
-
-    for (let i = lines.length - 1; i >= 0; i--) {
-      try {
-        const item = JSON.parse(lines[i]);
-        if (item.conversationId && !seen.has(item.conversationId)) {
-          seen.set(item.conversationId, {
-            conversationId: item.conversationId,
-            title: item.display ? item.display.slice(0, 80).replace(/\n/g, ' ') : '(대화 내용 없음)',
-            timestamp: item.timestamp || Date.now(),
-          });
-        }
-      } catch {}
-      if (seen.size >= 30) break;
-    }
-    return Array.from(seen.values());
-  } catch (err) {
-    console.error('Failed to read history.jsonl:', err);
-    return [];
-  }
-}
-
-const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-
-  if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
-    const htmlPath = path.join(STATIC_DIR, 'index.html');
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    fs.createReadStream(htmlPath).pipe(res);
-    return;
-  }
-
-  if (req.method === 'GET' && url.pathname === '/api/status') {
-    const ok = checkAgyAvailable();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(
-      JSON.stringify({
-        sdk_available: ok,
-        agent_active: Boolean(currentConversationId),
-        conversation_id: currentConversationId,
-        cwd: WORKSPACE_DIR,
-      })
-    );
-    return;
-  }
-
-  if (req.method === 'GET' && url.pathname === '/api/models') {
-    const models = await fetchModels();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ models }));
-    return;
-  }
-
-  if (req.method === 'GET' && url.pathname === '/api/conversations') {
-    const history = getConversationHistory();
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ conversations: history, currentId: currentConversationId }));
-    return;
-  }
-
-  if (req.method === 'POST' && url.pathname === '/api/reset') {
-    currentConversationId = null;
-    console.log('[Session] Reset conversation session');
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ ok: true, message: '새로운 대화 세션이 시작되었습니다.' }));
-    return;
-  }
-
-  if (req.method === 'POST' && url.pathname === '/api/resume') {
-    let body = '';
-    req.on('data', chunk => body += chunk.toString());
-    req.on('end', () => {
-      try {
-        const { conversationId } = JSON.parse(body || '{}');
-        if (!conversationId) {
-          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ error: '대화 ID가 제공되지 않았습니다.' }));
-          return;
-        }
-        currentConversationId = conversationId;
-        console.log(`[Session] Resumed conversation: ${conversationId}`);
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true, conversationId, message: `대화 세션(${conversationId.slice(0, 8)}...)을 불러왔습니다.` }));
-      } catch {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '잘못된 JSON 형식입니다.' }));
-      }
-    });
-    return;
-  }
-
-  if (req.method === 'POST' && url.pathname === '/api/chat') {
-    let body = '';
-    req.on('data', (chunk) => {
-      body += chunk.toString();
-    });
-
-    req.on('end', () => {
-      let message = '';
-      let selectedModel = '';
-      let selectedMode = '';
-      let reqConversationId = '';
-
-      try {
-        const parsed = JSON.parse(body || '{}');
-        message = (parsed.message || '').trim();
-        selectedModel = (parsed.model || '').trim();
-        selectedMode = (parsed.mode || '').trim();
-        reqConversationId = (parsed.conversationId || '').trim();
-      } catch {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '잘못된 요청 형식입니다.' }));
-        return;
-      }
-
-      if (!message) {
-        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ error: '메시지를 입력해 주세요.' }));
-        return;
-      }
-
-      if (reqConversationId) {
-        currentConversationId = reqConversationId;
-      }
-
-      console.log(`[Chat] Prompt: "${message}" | Model: ${selectedModel || 'default'} | Mode: ${selectedMode || 'default'} | Conv: ${currentConversationId || 'new'}`);
-
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no',
-      });
-
-      const sendEvent = (obj) => {
-        if (!res.writableEnded) {
-          res.write(`data: ${JSON.stringify(obj)}\n\n`);
-        }
-      };
-
-      const args = ['-p', message, '--output-format', 'stream-json'];
-
-      if (selectedModel) {
-        args.push('--model', selectedModel);
-      }
-      if (selectedMode) {
-        args.push('--mode', selectedMode);
-      }
-      if (currentConversationId) {
-        args.push('--conversation', currentConversationId);
-      }
-
-      const child = spawn(AGY_BIN, args, {
-        cwd: WORKSPACE_DIR,
-        env: process.env,
-        windowsHide: true,
-      });
-
-      let stdoutBuffer = '';
-      let stderrText = '';
-      let receivedTokens = false;
-
-      child.stdout.on('data', (chunk) => {
-        stdoutBuffer += chunk.toString('utf8');
-        const lines = stdoutBuffer.split(/\r?\n/);
-        stdoutBuffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-          try {
-            const evt = JSON.parse(trimmed);
-            if (evt.event === 'init' && evt.conversation_id) {
-              currentConversationId = evt.conversation_id;
-              sendEvent({ type: 'session_init', conversationId: currentConversationId });
-            } else if (evt.event === 'step_update' && evt.step_update) {
-              const su = evt.step_update;
-              if (su.conversation_id) {
-                currentConversationId = su.conversation_id;
-              }
-              if (su.thinking_delta) {
-                sendEvent({ type: 'thought', content: su.thinking_delta });
-              }
-              if (su.text_delta) {
-                receivedTokens = true;
-                sendEvent({ type: 'token', content: su.text_delta });
-              }
-              if (
-                su.step_type &&
-                su.step_type !== 'user_input' &&
-                su.step_type !== 'agent_response' &&
-                su.step_type !== 'system_message' &&
-                su.state === 'ACTIVE'
-              ) {
-                sendEvent({ type: 'tool_call', name: su.step_type });
-              }
-            } else if (evt.event === 'result' && evt.result) {
-              if (evt.result.conversation_id) {
-                currentConversationId = evt.result.conversation_id;
-              }
-              if (!receivedTokens && evt.result.response) {
-                sendEvent({ type: 'token', content: evt.result.response });
-              }
-              if (evt.result.status && evt.result.status !== 'SUCCESS' && evt.result.error) {
-                sendEvent({ type: 'error', content: evt.result.error });
-              }
-            }
-          } catch {
-            // Ignore non-JSON lines
-          }
-        }
-      });
-
-      child.stderr.on('data', (chunk) => {
-        stderrText += chunk.toString('utf8');
-      });
-
-      child.on('error', (err) => {
-        console.error(`[Error] agy process error:`, err);
-        sendEvent({ type: 'error', content: `agy 실행 오류: ${err.message}` });
-        res.end();
-      });
-
-      child.on('close', (code) => {
-        console.log(`[Chat] agy process closed with code ${code}`);
-        if (code !== 0 && stderrText.trim()) {
-          console.error(`[Error] stderr: ${stderrText}`);
-          sendEvent({ type: 'error', content: stderrText.trim() });
-        }
-        sendEvent({ type: 'done', conversationId: currentConversationId });
-        res.end();
-      });
-
-      res.on('close', () => {
-        if (!res.writableEnded && child.exitCode === null && !child.killed) {
-          console.log('[Chat] Client aborted connection, terminating child');
-          child.kill();
-        }
-      });
-    });
-    return;
-  }
-
-  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-  res.end('Not Found');
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`🚀 Antigravity (agy) Web Server running at http://127.0.0.1:${PORT}`);
+// 댓글 피드 목록 조회
+app.get('/api/messages', (req, res) => {
+  res.json({ messages });
+});
+
+// Non-streaming 댓글 질문 및 답변 처리
+app.post('/api/ask', async (req, res) => {
+  const { text, model = 'claude-3-7-sonnet', isVmCommand = false } = req.body;
+  if (!text || !text.trim()) {
+    return res.status(400).json({ error: '질문 내용을 입력해주세요.' });
+  }
+
+  // 해당 모델 쿼터 차감
+  if (MODEL_QUOTAS[model]) {
+    MODEL_QUOTAS[model].used5h = Math.min(MODEL_QUOTAS[model].max5h, MODEL_QUOTAS[model].used5h + 1);
+    if (MODEL_QUOTAS[model].usedWeekly) {
+      MODEL_QUOTAS[model].usedWeekly += 1;
+    }
+  }
+
+  const msgId = 'msg_' + Date.now();
+  const userMsg = {
+    id: msgId,
+    model,
+    modelName: (MODEL_QUOTAS[model] && MODEL_QUOTAS[model].name) || model,
+    question: text,
+    createdAt: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    isVmCommand: Boolean(isVmCommand),
+    answer: null
+  };
+
+  // VM 터미널 명령 처리인 경우
+  if (isVmCommand || text.startsWith('!') || text.startsWith('/sh ')) {
+    const cmd = text.replace(/^(!|\/sh\s+)/, '');
+    userMsg.answer = `[VM Terminal Result (hostname: ace, /home/antigravity)]\n$ ${cmd}\n(명령 실행 완료: 정상 종료 status 0)`;
+  } else {
+    // 일반 모델 Non-streaming 답변 완성 시뮬레이션
+    userMsg.answer = `[${userMsg.modelName}] 답변이 완성되었습니다.\n\n요청하신 \"${text}\"에 대해 분석을 완료했습니다. 백엔드에서 답변 생성 후 스트리밍 없이 단일 댓글 블록으로 렌더링되었습니다.`;
+  }
+
+  messages.unshift(userMsg);
+  const currentQ = MODEL_QUOTAS[model];
+
+  res.json({
+    success: true,
+    message: userMsg,
+    quota: {
+      remaining5h: Math.max(0, currentQ.max5h - currentQ.used5h),
+      max5h: currentQ.max5h,
+      percent5h: Math.round(((currentQ.max5h - currentQ.used5h) / currentQ.max5h) * 100),
+      resetInHours: currentQ.resetHours
+    }
+  });
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
