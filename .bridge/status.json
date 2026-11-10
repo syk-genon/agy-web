@@ -1,11 +1,7 @@
 {
   "online": true,
-  "version": 4,
   "vm": "Firebase-VM (agy-server / 35.188.210.15)",
   "agyBin": "/home/syk4441/.local/bin/agy",
-  "authenticated": false,
-  "ptyAlive": true,
-  "ptyExitCode": null,
-  "authUrl": "https://accounts.google.com/o/oauth2/auth?access_type=offline&client_id=1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com&code_challenge=TwdU-CdzFdn6ay9YlU6nFd4m5dnNdBt4m_Kfe4y-lPU&code_challenge_method=S256&prompt=consent&redirect_uri=https%3A%2F%2Fantigravity.google%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faicode+openid&state=VWKlZbRMEyoM6Ft4vwIoTQ",
-  "startedAt": 1794305491808
+  "authenticated": true,
+  "updatedAt": 1794309857827
 }
