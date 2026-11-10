@@ -1,7 +1,11 @@
 {
   "online": true,
+  "version": 4,
   "vm": "Firebase-VM (agy-server / 35.188.210.15)",
   "agyBin": "/home/syk4441/.local/bin/agy",
   "authenticated": true,
-  "updatedAt": 1794309857827
+  "ptyAlive": false,
+  "ptyExitCode": null,
+  "authUrl": null,
+  "startedAt": 1794311935656
 }
