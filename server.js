@@ -11,38 +11,38 @@ const MODEL_QUOTAS = {
   'claude-3-opus': {
     name: 'Claude 3 Opus',
     max5h: 15,
-    used5h: 15,
+    used5h: 0,
     maxWeekly: 100,
-    usedWeekly: 98,
+    usedWeekly: 40,
     type: 'antigravity',
-    resetHours: 2.25
+    resetHours: 5.0
   },
   'claude-3-7-sonnet': {
     name: 'Claude 3.7 Sonnet',
     max5h: 45,
-    used5h: 18,
+    used5h: 11,
     maxWeekly: 300,
-    usedWeekly: 156,
+    usedWeekly: 85,
     type: 'antigravity',
-    resetHours: 3.5
+    resetHours: 4.2
   },
   'gemini-3-8-flash': {
     name: 'Gemini 3.8 Flash',
     max5h: 150,
-    used5h: 22,
+    used5h: 15,
     maxWeekly: 1500,
-    usedWeekly: 330,
+    usedWeekly: 180,
     type: 'google',
-    resetHours: 4.1
+    resetHours: 4.8
   },
   'gemini-4-argon': {
     name: 'Gemini 4 Argon',
     max5h: 50,
-    used5h: 50,
+    used5h: 0,
     maxWeekly: 400,
-    usedWeekly: 376,
+    usedWeekly: 120,
     type: 'google',
-    resetHours: 1.67
+    resetHours: 5.0
   },
   'nvidia-llama-405b': {
     name: 'OSS Llama 3.1 405B',
