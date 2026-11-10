@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_1794354733321_u71p",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "5시간 지났는데 초기화가 안되네? 잔여량은 실시간으로 혹은 1분에 한번 갱신되면 좋겠어",
     "timestamp": 1794354733328
-  }
+  },
+  "receivedAt": 1794354734420
 }
