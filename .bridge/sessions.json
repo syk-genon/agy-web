@@ -122,6 +122,16 @@
         "timestamp": 1794309798191,
         "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
         "viaFirebaseVm": true
+      },
+      {
+        "id": "auth_code_1794309840728",
+        "author": "User",
+        "content": "4/0AUn6Hd_ZV4J-6TRdelXueD2yfQ4rUYZJYGhzO-yxq3Ne3vEVlyXEqwKLKoMeXrmNPDCWew",
+        "feedback": "### ✅ Firebase-VM (`agy-server`) `agy` CLI 인증 완료!\n정상적으로 Google 계정에 로그인되었으며 `antigravity-cli-daemon.service` (`Firebase-VM`)도 재시작되었습니다.\n\n이제 채팅창에 질문을 입력하시면 **`Firebase-VM`의 `agy` CLI**가 직접 실행하여 결과를 반환합니다!",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794309859060,
+        "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+        "viaFirebaseVm": true
       }
     ],
     "f12d753d-ea0a-40bd-aced-3e046cf4d9f1": [
