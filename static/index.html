@@ -238,7 +238,18 @@
       line-height: 1.6;
       border: 1px solid var(--border-color);
       word-break: break-word;
+      overflow-wrap: anywhere;
       white-space: pre-wrap;
+    }
+    .card-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .card pre, .card code {
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-wrap: anywhere;
     }
     .card.question {
       background-color: var(--card-q);
@@ -283,6 +294,7 @@
       padding: 18px 20% 24px 20%;
       display: flex;
       gap: 10px;
+      align-items: flex-end;
       backdrop-filter: blur(8px);
     }
     textarea {
@@ -290,14 +302,21 @@
       background-color: #171a21;
       border: 1px solid var(--border-color);
       color: #fff;
-      padding: 12px 14px;
+      padding: 13px 14px;
       border-radius: 8px;
       resize: none;
       font-size: 14px;
       outline: none;
       height: 52px;
-      line-height: 1.4;
+      min-height: 52px;
+      max-height: 180px;
+      line-height: 1.5;
       font-family: inherit;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      box-sizing: border-box;
+      overflow-y: auto;
     }
     textarea:focus { border-color: var(--accent); }
     .send-btn {
@@ -311,6 +330,7 @@
       cursor: pointer;
       transition: 0.15s;
       height: 52px;
+      flex-shrink: 0;
     }
     .send-btn:hover { background-color: #2563eb; }
     .send-btn:disabled { background-color: #374151; cursor: not-allowed; }
@@ -670,13 +690,13 @@
 
         const qCard = document.createElement("div");
         qCard.className = "card question";
-        qCard.innerHTML = `<div class="meta-tag"><span>USER NOTE</span><span>${pair.time || ''}</span></div><div>${escapeHtml(pair.question)}</div>`;
+        qCard.innerHTML = `<div class="meta-tag"><span>USER NOTE</span><span>${pair.time || ''}</span></div><div class="card-content">${escapeHtml(pair.question)}</div>`;
         block.appendChild(qCard);
 
         if (pair.answer !== undefined) {
           const aCard = document.createElement("div");
           aCard.className = "card answer";
-          aCard.innerHTML = `<div class="meta-tag"><span style="color:#10b981;">ENGINE RESPONSE (${escapeHtml(pair.model || 'agy')})</span></div><div>${escapeHtml(pair.answer)}</div>`;
+          aCard.innerHTML = `<div class="meta-tag"><span style="color:#10b981;">ENGINE RESPONSE (${escapeHtml(pair.model || 'agy')})</span></div><div class="card-content">${escapeHtml(pair.answer)}</div>`;
           block.appendChild(aCard);
         }
 
@@ -694,6 +714,7 @@
       const btn = document.getElementById("sendBtn");
       const selectedModel = getSelectedModel();
       input.value = "";
+      input.style.height = "52px";
       btn.disabled = true;
 
       recordUsage(selectedModel, text.length);
@@ -752,7 +773,17 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    document.getElementById("promptInput").addEventListener("keydown", function(e) {
+    function autoResizeTextarea() {
+      const input = document.getElementById("promptInput");
+      if (!input) return;
+      input.style.height = "auto";
+      const nextH = Math.min(Math.max(input.scrollHeight, 52), 180);
+      input.style.height = nextH + "px";
+    }
+
+    const promptInput = document.getElementById("promptInput");
+    promptInput.addEventListener("input", autoResizeTextarea);
+    promptInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
