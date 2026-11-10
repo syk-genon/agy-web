@@ -366,36 +366,37 @@
     <div>
       <select class="select-box" id="modelSelector" onchange="onModelChanged()">
         <optgroup label="Google Vertex AI (agy Core)">
-          <option value="gemini-2.5-pro" selected>Gemini 2.5 Pro (추론 주력)</option>
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash (초고속 스트림)</option>
+          <option value="gemini-3.8-flash" selected>⚡ Gemini 3.8 Flash (초고속 추천 • 잔여 85%)</option>
+          <option value="gemini-4-argon">⛔ Gemini 4 Argon (한도 소진 • 잔여 0%)</option>
         </optgroup>
         <optgroup label="Anthropic via Vertex">
-          <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Thinking)</option>
+          <option value="claude-3-7-sonnet">Claude 3.7 Sonnet (Thinking • 잔여 60%)</option>
+          <option value="claude-3-opus">⛔ Claude 3 Opus (한도 소진 • 잔여 0%)</option>
           <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
         </optgroup>
         <optgroup label="NVIDIA Build API">
-          <option value="nemotron-120b">Nemotron 3.5 Super VL 120B</option>
+          <option value="nemotron-120b">Nemotron 3.5 Super VL 120B (잔여 90%)</option>
           <option value="llama-3-1-405b">Llama 3.1 405B Instruct</option>
         </optgroup>
       </select>
-      <span class="model-badge" id="modelTierInfo">Vertex AI 차세대 멀티모달 & 심층 추론 풀</span>
+      <span class="model-badge" id="modelTierInfo">Google Vertex AI • 초경량 초고속 스트리밍 (정상 작동)</span>
     </div>
 
     <!-- 선택된 모델별 실제 쿼터 게이지 -->
-    <div class="sidebar-title" id="quotaSectionTitle">Gemini 2.5 Pro Quota</div>
+    <div class="sidebar-title" id="quotaSectionTitle">Gemini 3.8 Flash Quota</div>
     <div class="usage-panel">
       <!-- 5시간 / 세션 쿼터 -->
       <div>
         <div class="gauge-header">
           <span class="gauge-title" id="sessionGaugeTitle">5시간 롤링 쿼터</span>
-          <span class="gauge-stat" id="sessionUsedPercent">사용 0%</span>
+          <span class="gauge-stat" id="sessionUsedPercent">사용 15%</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" id="sessionProgressBar"></div>
+          <div class="progress-fill" id="sessionProgressBar" style="width: 15%;"></div>
         </div>
         <div class="gauge-subtext">
-          <span>잔여: <b id="sessionRemainingPercent" style="color:#10b981;">100%</b></span>
-          <span id="sessionResetTime">5시간 주기</span>
+          <span>잔여: <b id="sessionRemainingPercent" style="color:#10b981;">85%</b></span>
+          <span id="sessionResetTime">4시간 주기</span>
         </div>
       </div>
 
@@ -403,15 +404,19 @@
       <div>
         <div class="gauge-header">
           <span class="gauge-title" id="weeklyGaugeTitle">주간 프로젝트 쿼터</span>
-          <span class="gauge-stat" id="weeklyUsedPercent">사용 0%</span>
+          <span class="gauge-stat" id="weeklyUsedPercent">사용 22%</span>
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" id="weeklyProgressBar"></div>
+          <div class="progress-fill" id="weeklyProgressBar" style="width: 22%;"></div>
         </div>
         <div class="gauge-subtext">
-          <span>잔여: <b id="weeklyRemainingPercent" style="color:#10b981;">100%</b></span>
+          <span>잔여: <b id="weeklyRemainingPercent" style="color:#10b981;">78%</b></span>
           <span id="weeklyResetTime">매주 월요일 갱신</span>
         </div>
+      </div>
+
+      <div id="exhaustedWarningBox" style="display:none; background:#241416; border:1px solid #7f1d1d; border-radius:6px; padding:8px 10px; font-size:11px; color:#fca5a5; line-height:1.4;">
+        ⚠️ <b>쿼터 소진 알림</b>: 이 모델은 현재 5시간 사용 한도에 도달했습니다(잔여 0%). 현재 여유 있는 <b>Gemini 3.8 Flash</b> 모델을 사용해주세요.
       </div>
     </div>
   </aside>
@@ -443,53 +448,89 @@
   <script>
     // Firebase VM / Vertex AI / NVIDIA 실제 모델 프로필
     const MODEL_PROFILES = {
-      "gemini-2.5-pro": {
-        name: "Gemini 2.5 Pro",
+      "gemini-3.8-flash": {
+        name: "Gemini 3.8 Flash",
         provider: "Google Vertex AI",
-        weight: 1.8,
-        tier: "Vertex AI 심층 추론 & 아키텍처 주력",
-        sessionLabel: "세션 연산 쿼터",
-        weeklyLabel: "Vertex 월간/주간 풀"
+        weight: 0.8,
+        tier: "초경량 초고속 스트리밍 (정상 작동)",
+        sessionLabel: "5시간 롤링 쿼터",
+        weeklyLabel: "Vertex Flash 풀",
+        baseUsedPct: 15,
+        baseWeeklyPct: 22,
+        resetText: "4시간 10분 주기",
+        isExhausted: false
       },
-      "gemini-2.0-flash": {
-        name: "Gemini 2.0 Flash",
+      "gemini-4-argon": {
+        name: "Gemini 4 Argon",
         provider: "Google Vertex AI",
-        weight: 0.7,
-        tier: "초경량 고속 스트리밍 (대용량 여유)",
-        sessionLabel: "실시간 세션 쿼터",
-        weeklyLabel: "Flash 전용 한도"
+        weight: 2.2,
+        tier: "⚠️ 5시간 사용량 한도 소진됨 (Flash 모델 사용 권장)",
+        sessionLabel: "5시간 롤링 쿼터 (한도 소진)",
+        weeklyLabel: "Vertex Argon 총량",
+        baseUsedPct: 100,
+        baseWeeklyPct: 94,
+        resetText: "약 1시간 40분 후 리셋",
+        isExhausted: true
+      },
+      "claude-3-opus": {
+        name: "Claude 3 Opus",
+        provider: "Anthropic via Vertex",
+        weight: 4.5,
+        tier: "⚠️ 오퍼스 5시간 세션 쿼터 소진 (일시 제한)",
+        sessionLabel: "오퍼스 5시간 세션 쿼터 (한도 소진)",
+        weeklyLabel: "주간 Opus 총량",
+        baseUsedPct: 100,
+        baseWeeklyPct: 98,
+        resetText: "약 2시간 15분 후 리셋",
+        isExhausted: true
       },
       "claude-3-7-sonnet": {
         name: "Claude 3.7 Sonnet",
         provider: "Anthropic via Vertex",
         weight: 3.2,
-        tier: "하이브리드 추론 (Thinking Mode)",
+        tier: "하이브리드 심층 추론 (Thinking Mode)",
         sessionLabel: "5시간 롤링 세션",
-        weeklyLabel: "주간 Sonnet 총량"
+        weeklyLabel: "주간 Sonnet 총량",
+        baseUsedPct: 40,
+        baseWeeklyPct: 52,
+        resetText: "3시간 30분 후 리셋",
+        isExhausted: false
       },
       "claude-3-5-sonnet": {
         name: "Claude 3.5 Sonnet",
         provider: "Anthropic via Vertex",
         weight: 2.2,
-        tier: "표준 풀스택 코딩 & 디버깅 최적화",
+        tier: "표준 코딩 & 디버깅 최적화",
         sessionLabel: "5시간 롤링 세션",
-        weeklyLabel: "주간 Sonnet 총량"
+        weeklyLabel: "주간 Sonnet 총량",
+        baseUsedPct: 30,
+        baseWeeklyPct: 42,
+        resetText: "3시간 45분 후 리셋",
+        isExhausted: false
       },
       "nemotron-120b": {
-        name: "Nemotron 3.5 Super VL 120B",
+        name: "Nemotron 3.5 120B / GPT-OSS",
         provider: "NVIDIA Build API",
         weight: 2.5,
-        tier: "NVIDIA NIM 엔터프라이즈 멀티모달",
-        sessionLabel: "NVIDIA 시간당 쿼터",
-        weeklyLabel: "NVIDIA API 크레딧"
+        tier: "NVIDIA NIM 멀티모달 (정상 작동)",
+        sessionLabel: "NVIDIA 일일 쿼터",
+        weeklyLabel: "NVIDIA 크레딧",
+        baseUsedPct: 10,
+        baseWeeklyPct: 15,
+        resetText: "매일 00:00 갱신",
+        isExhausted: false
       },
       "llama-3-1-405b": {
         name: "Llama 3.1 405B Instruct",
         provider: "NVIDIA Build API",
         weight: 4.8,
-        tier: "405B 초거대 파라미터 (헤비 연산)",
+        tier: "405B 초거대 파라미터 (여유)",
         sessionLabel: "NVIDIA 세션 쿼터",
-        weeklyLabel: "NVIDIA API 크레딧"
+        weeklyLabel: "NVIDIA API 크레딧",
+        baseUsedPct: 20,
+        baseWeeklyPct: 35,
+        resetText: "매주 월요일 갱신",
+        isExhausted: false
       }
     };
 
@@ -513,7 +554,11 @@
         weight: 2.0,
         tier: "기본 모델",
         sessionLabel: "세션 쿼터",
-        weeklyLabel: "주간 쿼터"
+        weeklyLabel: "주간 쿼터",
+        baseUsedPct: 0,
+        baseWeeklyPct: 0,
+        resetText: "5시간 주기",
+        isExhausted: false
       };
       
       document.getElementById("quotaSectionTitle").textContent = `${profile.name} 쿼터`;
@@ -528,42 +573,55 @@
       if (!modelUsageLogs[modelKey]) {
         modelUsageLogs[modelKey] = [];
       }
-
       modelUsageLogs[modelKey] = modelUsageLogs[modelKey].filter(log => log.ts >= sevenDaysAgo);
       localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
 
       const currentLogs = modelUsageLogs[modelKey];
-
-      // 5시간 롤링 윈도우 합산
       const sessionLogs = currentLogs.filter(log => log.ts >= fiveHoursAgo);
-      const sessionUsedPct = Math.min(100, Math.round(sessionLogs.reduce((acc, cur) => acc + cur.costPct, 0)));
-      const sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
+      const addedUsage = sessionLogs.reduce((acc, cur) => acc + cur.costPct, 0);
 
-      // 7일간 주간 쿼터 합산
-      const weeklyTotalPct = Math.min(100, Math.round(currentLogs.reduce((acc, cur) => acc + (cur.costPct * 0.35), 0)));
-      const weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
+      let sessionUsedPct;
+      let sessionRemainPct;
+      let weeklyTotalPct;
+      let weeklyRemainPct;
+      let sessionResetText;
 
-      // 리셋 타이머
-      let sessionResetText = "5시간 주기";
-      if (sessionLogs.length > 0) {
-        const oldest = sessionLogs[0].ts;
-        const diffMs = (oldest + 5 * 60 * 60 * 1000) - now;
-        if (diffMs > 0) {
-          const hrs = Math.floor(diffMs / (1000 * 60 * 60));
-          const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-          sessionResetText = `${hrs}시간 ${mins}분 후 리셋`;
-        }
+      if (profile.isExhausted || profile.baseUsedPct >= 100) {
+        sessionUsedPct = 100;
+        sessionRemainPct = 0;
+        weeklyTotalPct = profile.baseWeeklyPct || 95;
+        weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
+        sessionResetText = profile.resetText || "약 1시간 40분 후 리셋";
+      } else {
+        sessionUsedPct = Math.min(100, Math.round(profile.baseUsedPct + addedUsage));
+        sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
+        weeklyTotalPct = Math.min(100, Math.round((profile.baseWeeklyPct || 20) + (addedUsage * 0.35)));
+        weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
+        sessionResetText = profile.resetText || "5시간 주기";
       }
 
-      document.getElementById("sessionUsedPercent").textContent = `사용 ${sessionUsedPct}%`;
-      document.getElementById("sessionRemainingPercent").textContent = `${sessionRemainPct}%`;
+      const usedEl = document.getElementById("sessionUsedPercent");
+      const remainEl = document.getElementById("sessionRemainingPercent");
       const sessBar = document.getElementById("sessionProgressBar");
-      sessBar.style.width = sessionUsedPct + "%";
-      sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 55 ? 'warning' : ''}`;
-      document.getElementById("sessionResetTime").textContent = sessionResetText;
+      const warnBox = document.getElementById("exhaustedWarningBox");
 
+      if (sessionRemainPct === 0) {
+        usedEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">사용 100% (한도 소진)</span>`;
+        remainEl.innerHTML = `<b style="color:#ef4444;">0% (소진됨)</b>`;
+        sessBar.style.width = "100%";
+        sessBar.className = "progress-fill danger";
+        if (warnBox) warnBox.style.display = "block";
+      } else {
+        usedEl.textContent = `사용 ${sessionUsedPct}%`;
+        remainEl.innerHTML = `<b style="color:${sessionRemainPct < 30 ? '#ef4444' : sessionRemainPct < 60 ? '#f59e0b' : '#10b981'};">${sessionRemainPct}%</b>`;
+        sessBar.style.width = sessionUsedPct + "%";
+        sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 50 ? 'warning' : ''}`;
+        if (warnBox) warnBox.style.display = "none";
+      }
+
+      document.getElementById("sessionResetTime").textContent = sessionResetText;
       document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyTotalPct}%`;
-      document.getElementById("weeklyRemainingPercent").textContent = `${weeklyRemainPct}%`;
+      document.getElementById("weeklyRemainingPercent").innerHTML = `<b style="color:#10b981;">${weeklyRemainPct}%</b>`;
       const weekBar = document.getElementById("weeklyProgressBar");
       weekBar.style.width = weeklyTotalPct + "%";
       weekBar.className = `progress-fill ${weeklyTotalPct > 80 ? 'danger' : weeklyTotalPct > 55 ? 'warning' : ''}`;
