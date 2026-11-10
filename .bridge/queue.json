@@ -1,4 +1,11 @@
 {
-  "status": "idle",
-  "updatedAt": 1794300551999
+  "status": "pending",
+  "request": {
+    "id": "test_vm_1794304872512",
+    "author": "User",
+    "sessionId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+    "model": "gemini-3.8-flash",
+    "content": "안녕",
+    "timestamp": 1794304872512
+  }
 }
