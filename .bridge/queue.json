@@ -1,6 +1,6 @@
 {
   "status": "processing",
-  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
+  "processingSession": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
   "request": {
     "id": "test_vm_1794304872512",
     "author": "User",
@@ -9,5 +9,5 @@
     "content": "안녕",
     "timestamp": 1794304872512
   },
-  "receivedAt": 1794304874548
+  "receivedAt": 1794304874682
 }
