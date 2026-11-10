@@ -1,6 +1,11 @@
 {
   "sessionsList": [
     {
+      "conversationId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+      "title": "🔥 [Firebase-VM] Remote CLI Execution",
+      "timestamp": 1794304755211
+    },
+    {
       "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
       "title": "📌 현재 세션: BlackNote & 브릿지",
       "timestamp": 1794300550562
@@ -105,6 +110,18 @@
         "timestamp": 1794041350562,
         "conversationId": "0ca70955-e9a6-4908-8b79-55a29f35ee67",
         "viaBridge": true
+      }
+    ],
+    "d43cc55a-9737-40ee-85f5-b32b47273274": [
+      {
+        "id": "vm_d43cc55a",
+        "author": "User",
+        "content": "리모트 cli 에 실행을 해야 리모트로 실행되는거야?",
+        "feedback": "이 세션(`d43cc55a-9737-40ee-85f5-b32b47273274`)은 **Firebase-VM (`agy-server`)** 내부의 `agy` CLI에 저장된 세션입니다. 이어서 질문을 입력하시면 `Firebase-VM`의 `agy`에서 바로 실행됩니다.",
+        "model": "gemini-4-argon",
+        "timestamp": 1794304755211,
+        "conversationId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+        "viaFirebaseVm": true
       }
     ]
   }
