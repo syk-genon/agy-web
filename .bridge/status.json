@@ -1,1 +1,6 @@
-{"online":true,"vm":"antigravity-ace","updatedAt":1794298000000}
+{
+  "online": true,
+  "vm": "antigravity-ace-vm",
+  "pid": 40,
+  "startedAt": 1794298535410
+}
