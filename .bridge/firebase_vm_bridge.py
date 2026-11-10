@@ -205,9 +205,15 @@ def start_auth_pty():
     except Exception:
         pass
 
+    subprocess.run(
+        ["systemctl", "--user", "stop", "antigravity-cli-daemon.service"],
+        env=get_env(),
+        capture_output=True,
+    )
+
     master_fd, slave_fd = pty.openpty()
     proc = subprocess.Popen(
-        [AGY_BIN],
+        [AGY_BIN, "remote-control", "serve"],
         stdin=slave_fd,
         stdout=slave_fd,
         stderr=slave_fd,
@@ -443,6 +449,15 @@ def process_request(req_item: dict):
     session_id = req_item.get("sessionId") or "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2"
     model = req_item.get("model") or "gemini-3.8-flash"
     author = req_item.get("author") or "User"
+
+    if content == "!update-bridge":
+        url = f"{API_BASE}/github/file?repo={urllib.parse.quote(REPO)}&path=.bridge/firebase_vm_bridge.py&_t={int(time.time()*1000)}"
+        req = urllib.request.Request(url, headers={"User-Agent": "Updater"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            new_code = json.loads(r.read().decode("utf-8"))["content"]
+        Path("/home/syk4441/firebase_vm_bridge.py").write_text(new_code, "utf-8")
+        os.execv(sys.executable, [sys.executable, "-u", "/home/syk4441/firebase_vm_bridge.py"])
+        return
 
     write_bridge_file(
         QUEUE_PATH,
