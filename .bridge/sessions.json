@@ -1,0 +1,111 @@
+{
+  "sessionsList": [
+    {
+      "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+      "title": "📌 현재 세션: BlackNote & 브릿지",
+      "timestamp": 1794298522792
+    },
+    {
+      "conversationId": "f12d753d-ea0a-40bd-aced-3e046cf4d9f1",
+      "title": "💀 사령군주 서바이버즈 설계 v2",
+      "timestamp": 1794255322792
+    },
+    {
+      "conversationId": "816d132c-e809-478e-8516-d98e03339327",
+      "title": "⚔️ Necro Survivors 코드리뷰/배포",
+      "timestamp": 1794197722792
+    },
+    {
+      "conversationId": "d64f4416-2892-4c0f-ad76-70f06d6818f6",
+      "title": "🎮 사령군주 16비트 도트 RPG",
+      "timestamp": 1794125722792
+    },
+    {
+      "conversationId": "0ca70955-e9a6-4908-8b79-55a29f35ee67",
+      "title": "☁️ GDrive & 이미지 생성 연동",
+      "timestamp": 1794039322792
+    }
+  ],
+  "sessionsData": {
+    "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2": [
+      {
+        "id": "s1-1",
+        "author": "User",
+        "content": "지금 이 agy 를 웹에서 질문하고 답변만 댓글형식으로 붙여주는 웹페이지를 만들고싶어. 스트리밍이나 이런거 필요없고 답변이 완료되면 그냥 댓글달리게. 가능해?",
+        "feedback": "네, 완전히 가능합니다! 스트리밍 타이핑 없이 백엔드에서 답변이 완성되면 통째로 대댓글 카드로 딱 붙는 Non-streaming 댓글 피드 웹페이지를 구성했습니다.",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794296422792,
+        "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+        "viaBridge": true
+      },
+      {
+        "id": "s1-2",
+        "author": "User",
+        "content": "저렇게 했을때 웹에서 agy에 요청하고 이런게 내 웹네트워크에 남나? 안남으면 좋겠는데 ai 몰래 쓰는거라서",
+        "feedback": "브라우저가 외부 AI 도메인으로 직접 통신하지 않고 본인의 Firebase 웹 서버와만 HTTPS로 통신하도록 구성하여, 네트워크 감시망이나 화면에서 일반 다크 메모장(`BlackNote`)처럼 보이도록 스텔스 처리했습니다.",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794297322792,
+        "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+        "viaBridge": true
+      },
+      {
+        "id": "s1-3",
+        "author": "User",
+        "content": "응 브릿지까지해서 잘 구현해줘 그리고 모델도 oss랑 opus들도 나오게 하고 사용량도 잔여량이 나오게 해줘",
+        "feedback": "### 🔗 Antigravity VM 실시간 양방향 브릿지 & 모델/잔여량 탑재 완료\n- **실시간 VM 브릿지 데몬(`vm-bridge.js`) 가동**: 웹에서 질문 시 이 Antigravity VM(`hostname: ace`)이 직접 받아 실행하며, `!ls -la` 또는 `/sh 명령어` 입력 시 실제 VM 터미널 명령까지 수행합니다.\n- **전체 모델 탑재**: **Claude 3 Opus**, **Claude 3.7 Sonnet**, **Gemini 4 Argon**, **Gemini 3.8 Flash**, **OSS (Llama 3.1 405B, Nemotron 120B, DeepSeek R1)** 선택 지원.\n- **사용량 및 잔여량 완벽 표시**: 5시간 쿼터 및 주간 쿼터의 **잔여 횟수 / 전체 횟수 (잔여 %)** 및 리셋 타이머를 실시간 표시합니다.",
+        "model": "claude-3-opus",
+        "timestamp": 1794298462792,
+        "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+        "viaBridge": true
+      }
+    ],
+    "f12d753d-ea0a-40bd-aced-3e046cf4d9f1": [
+      {
+        "id": "s2-1",
+        "author": "User",
+        "content": "뱀서류 설계서(vampire_survivors_design.md) 리뷰 및 《목적을 잃지 않는 사령군주: 서바이버즈》 마스터 설계서 v2.0 작성",
+        "feedback": "### 💀 《목적을 잃지 않는 사령군주: 서바이버즈》 마스터 설계서 v2.0 요약\n- **기반 프로젝트**: 기존 웹 RPG(`project_necro`)의 세계관·수식·1,950개 도트 에셋 100% 계승\n- **엔진 & 기술 스택**: `Phaser 3 + TypeScript + Vite` (모바일 패키징: `Capacitor`)\n- **타겟 화면**: 모바일 세로형 (9:16, `540 × 960`), 한 손 플로팅 가상 조이스틱\n- **한 판 구성**: 10분 (600초) = 100초 × 6웨이브 (W5 수문장 네임드, W6 지역 최종 보스 처치 시 클리어)\n- **소환수(군단) 시스템**: 이동형 호위/돌격 군단 (해골 전사·궁수·마법사·듀라한 아서), 개별 HP 및 길막 바리케이드 판정\n- **각성(진화)**: 액티브 스킬 Lv.5 + 짝꿍 패시브 보유 상태에서 W5 보물상자 획득 시 궁극 각성 달성",
+        "model": "claude-3-opus",
+        "timestamp": 1794255322792,
+        "conversationId": "f12d753d-ea0a-40bd-aced-3e046cf4d9f1",
+        "viaBridge": true
+      }
+    ],
+    "816d132c-e809-478e-8516-d98e03339327": [
+      {
+        "id": "s3-1",
+        "author": "User",
+        "content": "Necro Survivors 코드 리뷰 치명적 버그 수정 및 소환수 그래픽 리뉴얼 후 Firebase 배포",
+        "feedback": "### ⚔️ Necro Survivors 코드 리뷰 조치 및 배포 완료\n1. **이펙트 미출력 버그 수정 (`BattleScene.ts`, `Projectile.ts`)**:\n   - `cryo_nova`, `storm_chain`, `awakened_grip` 등 즉발/체인 스킬이 같은 프레임에 `setVisible(false)` 처리되던 문제를 트윈 애니메이션(0.3~0.5초)으로 분리하여 해결.\n2. **「죽음의 손아귀」 각성 불가 해결 (`skillsData.ts`)**:\n   - 누락되었던 흡혈 패시브(`pas_blood_vamp`) 매핑 복구 완료.\n3. **고품질 투명 스프라이트 교체 & Firebase 배포**:\n   - 해골 전사/궁수/마법사/드론 스프라이트 에셋 교체 후 `https://project-necro-54deb.web.app` 배포 완료.",
+        "model": "gemini-4-argon",
+        "timestamp": 1794197722792,
+        "conversationId": "816d132c-e809-478e-8516-d98e03339327",
+        "viaBridge": true
+      }
+    ],
+    "d64f4416-2892-4c0f-ad76-70f06d6818f6": [
+      {
+        "id": "s4-1",
+        "author": "User",
+        "content": "웹소설 원작 16비트 도트 액션 RPG 《목적을 잃지 않는 사령군주》 인트로/커스터마이징/배틀 화면 구축",
+        "feedback": "### 🎮 사령군주 16비트 도트 액션 RPG 화면 및 사운드 구축\n- **구현 화면**: 타이틀(`#screen-start`), 프롤로그 스토리 컷씬(`#screen-intro`), 12대 직업/특성/재능 커스터마이징(`#screen-customization`), 마을 거점(`#screen-hub`), 전투 스테이지(`#screen-battle`)\n- **사운드 & 연출**: `SoundEngine.startBgm('battle')` 연동 및 픽셀 아트 렌더링(`image-rendering: pixelated`) 적용 완료\n- **배포 경로**: `project-necro-54deb.web.app` 라이브 반영 완료.",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794125722792,
+        "conversationId": "d64f4416-2892-4c0f-ad76-70f06d6818f6",
+        "viaBridge": true
+      }
+    ],
+    "0ca70955-e9a6-4908-8b79-55a29f35ee67": [
+      {
+        "id": "s5-1",
+        "author": "User",
+        "content": "Google Drive CLI 연동 확인 및 무료 이미지 생성(FLUX/Pollinations) 파이프라인 점검",
+        "feedback": "### ☁️ Google Drive & 이미지 생성 환경 점검\n- **GDrive 플러그인**: `gdrive readonly` 및 `gdrive mutate` 네임스페이스 기반 파일 탐색/업로드 준비 완료.\n- **이미지 생성**: API 키 없이 고품질 게임 에셋 및 일러스트를 생성하는 무료 이미지 생성 스킬 점검 완료.",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794039322792,
+        "conversationId": "0ca70955-e9a6-4908-8b79-55a29f35ee67",
+        "viaBridge": true
+      }
+    ]
+  }
+}
