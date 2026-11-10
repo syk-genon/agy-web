@@ -248,7 +248,24 @@ def start_auth_pty():
                 break
 
     time.sleep(0.5)
-    print(f"[AuthPTY] Started PID={proc.pid}, poll={proc.poll()}, url_found={bool(auth_oauth_url)}, tail={strip_ansi(collected)[-200:]}")
+    print(f"[AuthPTY] Started PID={proc.pid}, poll={proc.poll()}, url_found={bool(auth_oauth_url)}")
+
+    if auth_oauth_url:
+        write_bridge_file(
+            STATUS_PATH,
+            {
+                "online": True,
+                "version": 4,
+                "vm": "Firebase-VM (agy-server / 35.188.210.15)",
+                "agyBin": AGY_BIN,
+                "authenticated": False,
+                "ptyAlive": True,
+                "authUrl": auth_oauth_url,
+                "ptyStartedAt": int(time.time() * 1000),
+            },
+            "chore(firebase-vm): refresh authUrl in status.json",
+        )
+
     return auth_oauth_url
 
 
@@ -482,13 +499,25 @@ def process_request(req_item: dict):
     model = req_item.get("model") or "gemini-3.8-flash"
     author = req_item.get("author") or "User"
 
-    if content == "!update-bridge":
-        url = f"{API_BASE}/github/file?repo={urllib.parse.quote(REPO)}&path=.bridge/firebase_vm_bridge.py&_t={int(time.time()*1000)}"
-        req = urllib.request.Request(url, headers={"User-Agent": "Updater"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            new_code = json.loads(r.read().decode("utf-8"))["content"]
-        Path("/home/syk4441/firebase_vm_bridge.py").write_text(new_code, "utf-8")
-        os.execv(sys.executable, [sys.executable, "-u", "/home/syk4441/firebase_vm_bridge.py"])
+    if content in ("!login", "!start-login", "로그인", "로그인 시작"):
+        url = start_auth_pty()
+        answer = (
+            "### ⏱️ Firebase-VM (`agy-server`) 로그인 대기 시작 (타임아웃 60초)\n"
+            "지금 바로 아래 링크를 열어 나오는 인증 코드를 복사해 붙여넣어 주세요:\n\n"
+            f"👉 **[Google 계정으로 Firebase-VM agy 로그인하기]({url})**\n\n"
+            "⚠️ 구글 페이지에서 허용 후 나타나는 `4/...` 코드를 **60초 이내에 여기에 입력**해 주시면 인증이 완료됩니다!"
+        )
+        new_note = {
+            "id": req_id,
+            "author": author,
+            "content": content,
+            "feedback": answer,
+            "model": model,
+            "timestamp": int(time.time() * 1000),
+            "conversationId": session_id,
+            "viaFirebaseVm": True,
+        }
+        write_bridge_file(QUEUE_PATH, {"status": "completed", "lastProcessedId": req_id, "completedAt": int(time.time() * 1000), "latestNote": new_note})
         return
 
     write_bridge_file(
