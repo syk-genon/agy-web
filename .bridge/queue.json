@@ -1,14 +1,12 @@
 {
-  "status": "processing",
-  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
+  "status": "pending",
   "request": {
-    "id": "req_1794310083099_6yr4",
+    "id": "req_1794311293430_ml8n",
     "author": "User",
     "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
     "modelLabel": "⚡ Gemini 3.8 Flash",
-    "content": "사이드바 닫는 버튼 달아줘.",
-    "timestamp": 1794310083102
-  },
-  "receivedAt": 1794310085042
+    "content": "사이드바 닫는 버튼도 달아줘",
+    "timestamp": 1794311293431
+  }
 }
