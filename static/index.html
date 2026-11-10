@@ -29,13 +29,13 @@
 
     /* Sidebar */
     #sidebar {
-      width: 270px;
+      width: 280px;
       background-color: var(--sidebar-bg);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       padding: 16px;
-      gap: 16px;
+      gap: 14px;
       flex-shrink: 0;
       z-index: 10;
     }
@@ -64,7 +64,8 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
+      max-height: 28vh;
     }
     .session-item {
       padding: 8px 10px;
@@ -91,13 +92,20 @@
       background-color: #161920;
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 8px 10px;
+      padding: 9px 10px;
       border-radius: 6px;
       font-size: 12px;
       outline: none;
+      cursor: pointer;
+    }
+    .model-badge {
+      font-size: 10px;
+      color: #93c5fd;
+      margin-top: 3px;
+      display: block;
     }
 
-    /* Usage Gauge Panel */
+    /* Quota Panel */
     .usage-panel {
       background: #14161c;
       padding: 12px;
@@ -105,7 +113,7 @@
       border: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
     .gauge-header {
       display: flex;
@@ -120,7 +128,7 @@
       color: var(--text-dim);
       display: flex;
       justify-content: space-between;
-      margin-top: 2px;
+      margin-top: 3px;
     }
     .progress-bar {
       width: 100%;
@@ -136,12 +144,8 @@
       width: 0%;
       transition: width 0.4s ease;
     }
-    .progress-fill.warning {
-      background: var(--accent-orange);
-    }
-    .progress-fill.danger {
-      background: #ef4444;
-    }
+    .progress-fill.warning { background: var(--accent-orange); }
+    .progress-fill.danger { background: #ef4444; }
 
     /* Main Content */
     #main {
@@ -204,7 +208,6 @@
       display: flex;
       justify-content: space-between;
     }
-
     .card.loading {
       display: flex;
       align-items: center;
@@ -222,7 +225,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Bottom Input Bar */
+    /* Input Bar */
     .input-bar {
       position: absolute;
       bottom: 0;
@@ -267,7 +270,7 @@
     @media (max-width: 900px) {
       .feed-container { padding: 16px 5% 150px 5%; }
       .input-bar { padding: 16px 5% 20px 5%; }
-      #sidebar { width: 230px; }
+      #sidebar { width: 240px; }
     }
   </style>
 </head>
@@ -278,24 +281,37 @@
     <div class="sidebar-title">Workspaces</div>
     <button class="new-btn" onclick="createNewSession()">+ 새 메모 세션</button>
 
-    <div class="sidebar-title" style="margin-top: 6px;">Recent Sessions</div>
+    <div class="sidebar-title" style="margin-top: 4px;">Recent Sessions</div>
     <div class="session-list" id="sessionList"></div>
 
-    <div class="sidebar-title">Engine Model</div>
-    <select class="select-box" id="modelSelector">
-      <option value="vertex-agy" selected>Vertex AI (agy Core)</option>
-      <option value="nemotron">Nemotron 120B (NVIDIA)</option>
-      <option value="llama31">Llama 3.1 405B (Meta)</option>
-    </select>
+    <!-- 총 6개 정밀 모델 셀렉터 -->
+    <div class="sidebar-title">Active Engine</div>
+    <div>
+      <select class="select-box" id="modelSelector" onchange="onModelChanged()">
+        <optgroup label="Anthropic Claude">
+          <option value="claude-3-5-sonnet" selected>Claude 3.5 Sonnet</option>
+          <option value="claude-3-opus">Claude 3 Opus</option>
+          <option value="claude-3-5-haiku">Claude 3.5 Haiku</option>
+        </optgroup>
+        <optgroup label="Google Vertex AI">
+          <option value="vertex-gemini-15-pro">Gemini 1.5 Pro (agy Core)</option>
+        </optgroup>
+        <optgroup label="NVIDIA & Open Source">
+          <option value="nemotron-120b">Nemotron 120B (NVIDIA)</option>
+          <option value="llama-3-1-405b">Llama 3.1 405B (Meta)</option>
+        </optgroup>
+      </select>
+      <span class="model-badge" id="modelTierInfo">표준 토큰 가중치 / 5시간 롤링 세션</span>
+    </div>
 
-    <!-- 동적 사용량/잔여량 % 패널 -->
-    <div class="sidebar-title">Quota Status</div>
+    <!-- 선택된 모델별 독립 실시간 쿼터 패널 -->
+    <div class="sidebar-title" id="quotaSectionTitle">Claude 3.5 Sonnet Quota</div>
     <div class="usage-panel">
-      <!-- 5시간 세션 게이지 -->
+      <!-- 5시간 롤링 윈도우 -->
       <div>
         <div class="gauge-header">
-          <span class="gauge-title">5시간 세션 한도</span>
-          <span class="gauge-stat" id="sessionUsedPercent">0%</span>
+          <span class="gauge-title">5시간 세션 쿼터</span>
+          <span class="gauge-stat" id="sessionUsedPercent">사용 0%</span>
         </div>
         <div class="progress-bar">
           <div class="progress-fill" id="sessionProgressBar"></div>
@@ -306,11 +322,11 @@
         </div>
       </div>
 
-      <!-- 주간 쿼터 게이지 -->
+      <!-- 주간 누적 쿼터 -->
       <div>
         <div class="gauge-header">
-          <span class="gauge-title">주간 누적 쿼터</span>
-          <span class="gauge-stat" id="weeklyUsedPercent">0%</span>
+          <span class="gauge-title">주간 총 연산량</span>
+          <span class="gauge-stat" id="weeklyUsedPercent">사용 0%</span>
         </div>
         <div class="progress-bar">
           <div class="progress-fill" id="weeklyProgressBar"></div>
@@ -339,64 +355,100 @@
   </main>
 
   <script>
+    // 모델별 특성 및 토큰/연산 가중치 정의
+    const MODEL_PROFILES = {
+      "claude-3-5-sonnet": { name: "Claude 3.5 Sonnet", weight: 2.2, tier: "스마트 롤링 세션 (균형형)" },
+      "claude-3-opus": { name: "Claude 3 Opus", weight: 5.0, tier: "헤비 연산 모드 (쿼터 소모 큼)" },
+      "claude-3-5-haiku": { name: "Claude 3.5 Haiku", weight: 0.8, tier: "초고속 경량 모드 (대용량 쿼터)" },
+      "vertex-gemini-15-pro": { name: "Gemini 1.5 Pro", weight: 1.8, tier: "Vertex AI 엔터프라이즈 풀" },
+      "nemotron-120b": { name: "Nemotron 120B", weight: 2.0, tier: "NVIDIA Build API 쿼터" },
+      "llama-3-1-405b": { name: "Llama 3.1 405B", weight: 4.5, tier: "405B 초거대 파라미터 쿼터" }
+    };
+
     let sessions = JSON.parse(localStorage.getItem("agy_sessions") || "[]");
     let currentSessionId = localStorage.getItem("agy_current_session") || null;
-    // 사용량 트래킹 (타임스탬프 기록)
-    let usageHistory = JSON.parse(localStorage.getItem("agy_usage_history") || "[]");
+    
+    // 모델별 분리된 쿼터 로그 { modelKey: [ { ts: 1234567, costPct: 2.2 }, ... ] }
+    let modelUsageLogs = JSON.parse(localStorage.getItem("agy_model_usage_logs") || "{}");
 
-    // 5시간 세션 최대 요청 수 기준 (예: 50회)
-    const MAX_SESSION_REQUESTS = 50;
-    // 1주일 최대 요청 수 기준 (예: 300회)
-    const MAX_WEEKLY_REQUESTS = 300;
+    function getSelectedModel() {
+      return document.getElementById("modelSelector").value;
+    }
+
+    function onModelChanged() {
+      updateUsageGauges();
+    }
 
     function updateUsageGauges() {
+      const modelKey = getSelectedModel();
+      const profile = MODEL_PROFILES[modelKey] || { name: modelKey, weight: 2.0, tier: "기본 모델" };
+      
+      document.getElementById("quotaSectionTitle").textContent = `${profile.name} 쿼터`;
+      document.getElementById("modelTierInfo").textContent = profile.tier;
+
       const now = Date.now();
       const fiveHoursAgo = now - (5 * 60 * 60 * 1000);
       const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
-      // 오래된 기록 정리
-      usageHistory = usageHistory.filter(ts => ts >= sevenDaysAgo);
-      localStorage.setItem("agy_usage_history", JSON.stringify(usageHistory));
-
-      // 5시간 내 요청 수 계산
-      const sessionRequests = usageHistory.filter(ts => ts >= fiveHoursAgo).length;
-      const sessionUsedPct = Math.min(100, Math.round((sessionRequests / MAX_SESSION_REQUESTS) * 100));
-      const sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
-
-      // 주간 요청 수 계산
-      const weeklyRequests = usageHistory.length;
-      const weeklyUsedPct = Math.min(100, Math.round((weeklyRequests / MAX_WEEKLY_REQUESTS) * 100));
-      const weeklyRemainPct = Math.max(0, 100 - weeklyUsedPct);
-
-      // 5시간 리셋 남은 시간 계산
-      const oldestInFiveHours = usageHistory.find(ts => ts >= fiveHoursAgo);
-      let sessionResetText = "5시간 주기";
-      if (oldestInFiveHours) {
-        const diffMs = (oldestInFiveHours + 5 * 60 * 60 * 1000) - now;
-        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
-        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        sessionResetText = `${hrs}h ${mins}m 후 리셋`;
+      if (!modelUsageLogs[modelKey]) {
+        modelUsageLogs[modelKey] = [];
       }
 
-      // DOM 반영 - 5시간 세션
+      // 7일 지난 오래된 데이터 제거
+      modelUsageLogs[modelKey] = modelUsageLogs[modelKey].filter(log => log.ts >= sevenDaysAgo);
+      localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
+
+      const currentLogs = modelUsageLogs[modelKey];
+
+      // 5시간 롤링 윈도우 내 사용량 합산 (%)
+      const sessionLogs = currentLogs.filter(log => log.ts >= fiveHoursAgo);
+      const sessionUsedPct = Math.min(100, Math.round(sessionLogs.reduce((acc, cur) => acc + cur.costPct, 0)));
+      const sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
+
+      // 7일간 주간 쿼터 합산 (%)
+      const weeklyTotalPct = Math.min(100, Math.round(currentLogs.reduce((acc, cur) => acc + (cur.costPct * 0.4), 0)));
+      const weeklyRemainPct = Math.max(0, 100 - weeklyTotalPct);
+
+      // 5시간 리셋 예상 시간
+      let sessionResetText = "5시간 주기";
+      if (sessionLogs.length > 0) {
+        const oldest = sessionLogs[0].ts;
+        const diffMs = (oldest + 5 * 60 * 60 * 1000) - now;
+        if (diffMs > 0) {
+          const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+          const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          sessionResetText = `${hrs}시간 ${mins}분 후 리셋`;
+        }
+      }
+
+      // DOM 업데이트 - 5시간 세션
       document.getElementById("sessionUsedPercent").textContent = `사용 ${sessionUsedPct}%`;
       document.getElementById("sessionRemainingPercent").textContent = `${sessionRemainPct}%`;
       const sessBar = document.getElementById("sessionProgressBar");
       sessBar.style.width = sessionUsedPct + "%";
-      sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 60 ? 'warning' : ''}`;
+      sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 55 ? 'warning' : ''}`;
       document.getElementById("sessionResetTime").textContent = sessionResetText;
 
-      // DOM 반영 - 주간 쿼터
-      document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyUsedPct}%`;
+      // DOM 업데이트 - 주간 쿼터
+      document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyTotalPct}%`;
       document.getElementById("weeklyRemainingPercent").textContent = `${weeklyRemainPct}%`;
       const weekBar = document.getElementById("weeklyProgressBar");
-      weekBar.style.width = weeklyUsedPct + "%";
-      weekBar.className = `progress-fill ${weeklyUsedPct > 80 ? 'danger' : weeklyUsedPct > 60 ? 'warning' : ''}`;
+      weekBar.style.width = weeklyTotalPct + "%";
+      weekBar.className = `progress-fill ${weeklyTotalPct > 80 ? 'danger' : weeklyTotalPct > 55 ? 'warning' : ''}`;
     }
 
-    function recordUsage() {
-      usageHistory.push(Date.now());
-      localStorage.setItem("agy_usage_history", JSON.stringify(usageHistory));
+    function recordUsage(modelKey, promptLength) {
+      const profile = MODEL_PROFILES[modelKey] || { weight: 2.0 };
+      // 텍스트 길이에 따라 실제 연산/토큰 가중치 비례 적용 (최소 1.0% ~ 5.5%)
+      const lengthMultiplier = Math.min(2.5, 1 + (promptLength / 800));
+      const costPct = parseFloat((profile.weight * lengthMultiplier).toFixed(1));
+
+      if (!modelUsageLogs[modelKey]) modelUsageLogs[modelKey] = [];
+      modelUsageLogs[modelKey].push({
+        ts: Date.now(),
+        costPct: costPct
+      });
+      localStorage.setItem("agy_model_usage_logs", JSON.stringify(modelUsageLogs));
       updateUsageGauges();
     }
 
@@ -426,7 +478,7 @@
       renderSessionList();
       renderFeed();
       updateUsageGauges();
-      setInterval(updateUsageGauges, 60000); // 1분마다 주기적 갱신
+      setInterval(updateUsageGauges, 60000);
     }
 
     function saveSessions() {
@@ -509,12 +561,12 @@
       if (!text) return;
 
       const btn = document.getElementById("sendBtn");
-      const selectedModel = document.getElementById("modelSelector").value;
+      const selectedModel = getSelectedModel();
       input.value = "";
       btn.disabled = true;
 
-      // 질문 전송 시 쿼터 기록 트리거
-      recordUsage();
+      // 질문 길이와 모델 가중치에 따른 % 소모 기록
+      recordUsage(selectedModel, text.length);
 
       const sess = getCurrentSession();
       if (sess.items.length === 0) {
@@ -527,7 +579,7 @@
       sess.items.push({
         question: text,
         time: now,
-        model: selectedModel
+        model: MODEL_PROFILES[selectedModel]?.name || selectedModel
       });
       saveSessions();
       renderFeed();
