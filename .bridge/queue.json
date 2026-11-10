@@ -1,13 +1,11 @@
 {
-  "status": "processing",
-  "processingSession": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+  "status": "pending",
   "request": {
-    "id": "test_vm_1794304872512",
+    "id": "test_v3_1794305086286",
     "author": "User",
-    "sessionId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+    "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
-    "content": "안녕",
-    "timestamp": 1794304872512
-  },
-  "receivedAt": 1794304874682
+    "content": "상태 확인",
+    "timestamp": 1794305086286
+  }
 }
