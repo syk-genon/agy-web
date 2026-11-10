@@ -176,9 +176,10 @@ def is_agy_authenticated() -> bool:
             [AGY_BIN, "models"],
             cwd=HOME_DIR,
             env=get_env(),
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
-            timeout=8,
+            timeout=6,
         )
         out = chk.stdout + chk.stderr
         return chk.returncode == 0 and "Please sign in" not in out
@@ -205,15 +206,9 @@ def start_auth_pty():
     except Exception:
         pass
 
-    subprocess.run(
-        ["systemctl", "--user", "stop", "antigravity-cli-daemon.service"],
-        env=get_env(),
-        capture_output=True,
-    )
-
     master_fd, slave_fd = pty.openpty()
     proc = subprocess.Popen(
-        [AGY_BIN, "remote-control", "serve"],
+        [AGY_BIN, "-p", "ping"],
         stdin=slave_fd,
         stdout=slave_fd,
         stderr=slave_fd,
@@ -227,9 +222,9 @@ def start_auth_pty():
     auth_oauth_url = None
 
     collected = ""
-    deadline = time.time() + 12.0
+    deadline = time.time() + 8.0
     while time.time() < deadline:
-        r, _, _ = select.select([master_fd], [], [], 0.5)
+        r, _, _ = select.select([master_fd], [], [], 0.4)
         if r:
             try:
                 chunk = os.read(master_fd, 4096).decode("utf-8", "replace")
@@ -257,10 +252,10 @@ def submit_auth_code_to_pty(code_str: str) -> tuple[bool, str]:
         return False, f"인증 코드 전달 실패: {e}"
 
     collected = ""
-    deadline = time.time() + 15.0
+    deadline = time.time() + 12.0
     success = False
     while time.time() < deadline:
-        r, _, _ = select.select([auth_pty_fd], [], [], 0.5)
+        r, _, _ = select.select([auth_pty_fd], [], [], 0.4)
         if r:
             try:
                 chunk = os.read(auth_pty_fd, 4096).decode("utf-8", "replace")
@@ -353,6 +348,12 @@ def run_agy_prompt(prompt: str, model_id: str, web_session_id: str) -> tuple[str
     if auth_pty_proc is not None and auth_pty_proc.poll() is None and auth_oauth_url:
         return build_auth_prompt_message(auth_oauth_url), agy_conv_id
 
+    if not is_agy_authenticated():
+        oauth_url = start_auth_pty()
+        if oauth_url:
+            return build_auth_prompt_message(oauth_url), agy_conv_id
+        return "### 🔐 Firebase-VM (`agy-server`) `agy` CLI 로그인이 필요합니다.\nSSH에서 `agy`를 실행해 로그인해 주세요.", agy_conv_id
+
     def execute_once(use_model: str, use_conv: str):
         args = [
             AGY_BIN,
@@ -371,6 +372,7 @@ def run_agy_prompt(prompt: str, model_id: str, web_session_id: str) -> tuple[str
             args,
             cwd=HOME_DIR,
             env=get_env(),
+            stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
