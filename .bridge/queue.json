@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_1794314320525_q4wi",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "모델별 잔여량이 안맞아 지금 오퍼스랑 아르곤은 다썼는데 꽉차있다고 뜬다",
     "timestamp": 1794314320526
-  }
+  },
+  "receivedAt": 1794314322764
 }
