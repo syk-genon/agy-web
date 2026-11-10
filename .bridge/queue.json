@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "test_run_1794309879037",
     "author": "User",
@@ -7,5 +8,6 @@
     "model": "gemini-3.8-flash",
     "content": "현재 서버 호스트명과 위치를 짧게 알려줘",
     "timestamp": 1794309879037
-  }
+  },
+  "receivedAt": 1794309880927
 }
