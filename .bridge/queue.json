@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_1794313306585_fzgm",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "채팅창칸이 넘어가면 줄바꿈 되게 만들어줘",
     "timestamp": 1794313306587
-  }
+  },
+  "receivedAt": 1794313308619
 }
