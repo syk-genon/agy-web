@@ -1,14 +1,12 @@
 {
-  "status": "processing",
-  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
+  "status": "pending",
   "request": {
-    "id": "req_1794313454339_kohj",
+    "id": "req_1794313515956_cpqi",
     "author": "User",
     "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
     "modelLabel": "⚡ Gemini 3.8 Flash",
-    "content": "커밋하면 바로 파이어베이스에 반영도해",
-    "timestamp": 1794313454340
-  },
-  "receivedAt": 1794313457270
+    "content": "커밋하면 파이어베이스에 바로 반영도해",
+    "timestamp": 1794313515957
+  }
 }
