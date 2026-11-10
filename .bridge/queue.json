@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_1794311293430_ml8n",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "사이드바 닫는 버튼도 달아줘",
     "timestamp": 1794311293431
-  }
+  },
+  "receivedAt": 1794311949563
 }
