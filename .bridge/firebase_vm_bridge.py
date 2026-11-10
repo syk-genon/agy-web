@@ -231,7 +231,7 @@ def start_auth_pty():
     auth_oauth_url = None
 
     collected = ""
-    deadline = time.time() + 8.0
+    deadline = time.time() + 180.0
     while time.time() < deadline:
         r, _, _ = select.select([master_fd], [], [], 0.4)
         if r:
@@ -240,10 +240,9 @@ def start_auth_pty():
                 collected += chunk
                 clean = strip_ansi(collected)
                 m = re.search(r"(https://accounts\.google\.com/o/oauth2/auth\S+)", clean)
-                if m:
+                if m and not auth_oauth_url:
                     auth_oauth_url = m.group(1).strip()
-                    if "Enter the authorization code" in clean:
-                        break
+                    break
             except OSError:
                 break
 
