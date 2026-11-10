@@ -206,6 +206,14 @@ def start_auth_pty():
     except Exception:
         pass
 
+    def setup_ctty():
+        os.setsid()
+        try:
+            import fcntl, termios
+            fcntl.ioctl(slave_fd, termios.TIOCSCTTY, 0)
+        except Exception:
+            pass
+
     master_fd, slave_fd = pty.openpty()
     proc = subprocess.Popen(
         [AGY_BIN, "-p", "ping"],
@@ -214,6 +222,7 @@ def start_auth_pty():
         stderr=slave_fd,
         cwd=HOME_DIR,
         env=get_env(),
+        preexec_fn=setup_ctty,
         close_fds=True,
     )
     os.close(slave_fd)
@@ -233,18 +242,40 @@ def start_auth_pty():
                 m = re.search(r"(https://accounts\.google\.com/o/oauth2/auth\S+)", clean)
                 if m:
                     auth_oauth_url = m.group(1).strip()
-                    if "Enter the authorization code" in clean or len(auth_oauth_url) > 80:
+                    if "Enter the authorization code" in clean:
                         break
             except OSError:
                 break
 
+    time.sleep(0.5)
+    print(f"[AuthPTY] Started PID={proc.pid}, poll={proc.poll()}, url_found={bool(auth_oauth_url)}, tail={strip_ansi(collected)[-200:]}")
     return auth_oauth_url
 
 
 def submit_auth_code_to_pty(code_str: str) -> tuple[bool, str]:
     global auth_pty_proc, auth_pty_fd, auth_oauth_url
-    if auth_pty_proc is None or auth_pty_proc.poll() is not None or auth_pty_fd is None:
-        return False, "현재 대기 중인 인증 세션이 없습니다. 다시 질문을 입력해 인증 링크를 새로고침해 주세요."
+    if auth_pty_proc is None or auth_pty_fd is None:
+        new_url = start_auth_pty()
+        return False, f"인증 대기 프로세스가 없었습니다. 새 인증 프로세스를 시작했습니다:\n👉 **[Google 로그인 링크]({new_url})**"
+
+    poll_before = auth_pty_proc.poll()
+    pre_read = ""
+    while True:
+        r, _, _ = select.select([auth_pty_fd], [], [], 0.1)
+        if not r:
+            break
+        try:
+            pre_read += os.read(auth_pty_fd, 4096).decode("utf-8", "replace")
+        except OSError:
+            break
+
+    if poll_before is not None:
+        new_url = start_auth_pty()
+        return False, (
+            f"이전 인증 프로세스가 종료된 상태였습니다 (exit={poll_before}).\n"
+            f"출력 로그:\n```text\n{strip_ansi(pre_read)[-500:]}\n```\n"
+            f"새 인증 링크: 👉 **[Google 로그인 링크]({new_url})**"
+        )
 
     try:
         os.write(auth_pty_fd, (code_str.strip() + "\n").encode("utf-8"))
@@ -261,7 +292,7 @@ def submit_auth_code_to_pty(code_str: str) -> tuple[bool, str]:
                 chunk = os.read(auth_pty_fd, 4096).decode("utf-8", "replace")
                 collected += chunk
                 clean = strip_ansi(collected)
-                if "Authenticated as" in clean or "Welcome" in clean:
+                if "Authenticated as" in clean or "Welcome" in clean or "event" in clean:
                     success = True
                     break
             except OSError:
@@ -307,10 +338,9 @@ def submit_auth_code_to_pty(code_str: str) -> tuple[bool, str]:
     else:
         new_url = start_auth_pty()
         return False, (
-            f"### ⚠️ 인증 코드 확인 실패\n"
-            f"입력하신 코드가 만료되었거나 올바르지 않습니다.\n\n"
-            f"새 인증 링크: 👉 **[Google 계정으로 Firebase-VM agy 로그인하기]({new_url})**\n\n"
-            f"위 링크에서 발급된 새 인증 코드를 다시 붙여넣어 주세요."
+            f"### ⚠️ 인증 코드 처리 결과 확인\n"
+            f"PTY 출력:\n```text\n{strip_ansi(pre_read + collected)[-800:]}\n```\n\n"
+            f"새 인증 링크: 👉 **[Google 계정으로 Firebase-VM agy 로그인하기]({new_url})**"
         )
 
 
@@ -472,11 +502,10 @@ def process_request(req_item: dict):
         f"chore(firebase-vm): processing {req_id}",
     )
 
-    # Check if user is submitting an OAuth code (e.g. "4/..." or ASCII token without spaces)
     is_code_input = content.startswith("4/") or (
         len(content) >= 20 and " " not in content and content.isascii()
     )
-    if auth_pty_proc is not None and auth_pty_proc.poll() is None and is_code_input:
+    if is_code_input and not is_agy_authenticated():
         ok, reply_msg = submit_auth_code_to_pty(content)
         answer = reply_msg
     else:
@@ -515,7 +544,7 @@ def process_request(req_item: dict):
 
 
 def main():
-    print("🚀 Firebase-VM (agy-server) <-> sykagy.web.app Bridge Daemon starting...")
+    print("🚀 Firebase-VM (agy-server) <-> sykagy.web.app Bridge Daemon v4 starting...")
     authed = is_agy_authenticated()
     oauth_url = None
     if not authed:
@@ -525,13 +554,16 @@ def main():
         STATUS_PATH,
         {
             "online": True,
+            "version": 4,
             "vm": "Firebase-VM (agy-server / 35.188.210.15)",
             "agyBin": AGY_BIN,
             "authenticated": authed,
+            "ptyAlive": auth_pty_proc is not None and auth_pty_proc.poll() is None,
+            "ptyExitCode": auth_pty_proc.poll() if auth_pty_proc is not None else None,
             "authUrl": oauth_url,
             "startedAt": int(time.time() * 1000),
         },
-        "chore(firebase-vm): bridge daemon online",
+        "chore(firebase-vm): bridge daemon v4 online",
     )
 
     sync_vm_sessions_to_cloud()
