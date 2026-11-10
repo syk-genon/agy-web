@@ -177,6 +177,16 @@
         "timestamp": 1794313423213,
         "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
         "viaFirebaseVm": true
+      },
+      {
+        "id": "req_1794313454339_kohj",
+        "author": "User",
+        "content": "커밋하면 바로 파이어베이스에 반영도해",
+        "feedback": "> **Firebase-VM (`agy`) 도구 실행**: `🛠 tool`\n\n깃 커밋 시 **파이어베이스 호스팅(`sykagy.web.app`)에 즉시 자동 배포**되도록 파이프라인을 구축하고, 방금 작업한 사이드바 버튼 및 줄바꿈 변경 사항을 실제 라이브에 배포 완료했습니다.\n\n---\n\n### 작업 내역\n\n1. **실시간 파이어베이스 호스팅 자동 배포 스크립트 작성** ([deploy_hosting.py](file:///home/syk4441/agy-web/deploy_hosting.py))\n   - Firebase Hosting REST API와 연동하여 `static/`의 변경된 정적 자산(Gzip 압축 및 SHA-256 해시 검증)과 `/api/**` Cloud Functions 리라이트 규칙을 3초 내로 배포 및 릴리즈합니다.\n\n2. **Git `post-commit` 훅 연동**\n   - 저장소 내에서 `git commit`이 실행될 때마다 자동으로 `deploy_hosting.py`가 트리거되어, 커밋 즉시 파이어베이스 호스팅에 배포됩니다.\n\n3. **라이브 배포 반영 검증 완료**\n   - [sykagy.web.app](https://sykagy.web.app)에 접속하시면 방금 요청하신 **사이드바 닫기/토글 버튼**과 **채팅창 줄바꿈 및 자동 확장 기능**이 적용된 것을 확인하실 수 있습니다.",
+        "model": "gemini-3.8-flash",
+        "timestamp": 1794313766702,
+        "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
+        "viaFirebaseVm": true
       }
     ],
     "f12d753d-ea0a-40bd-aced-3e046cf4d9f1": [
