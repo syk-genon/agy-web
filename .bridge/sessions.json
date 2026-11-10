@@ -1,6 +1,21 @@
 {
   "sessionsList": [
     {
+      "conversationId": "ef1bc823-f123-4abc-bd63-d140acb613c7",
+      "title": "🔥 [Firebase-VM] ping",
+      "timestamp": 1794311942016
+    },
+    {
+      "conversationId": "90aeb60e-0371-48a3-a062-3ecd8f8a9c41",
+      "title": "🔥 [Firebase-VM] 현재 서버 호스트명과 위치를 짧게 알",
+      "timestamp": 1794311942016
+    },
+    {
+      "conversationId": "632c92f4-876e-4cba-9931-42267f73fffc",
+      "title": "🔥 [Firebase-VM] 사이드바 닫는 버튼도 달아줘",
+      "timestamp": 1794311942016
+    },
+    {
       "conversationId": "d43cc55a-9737-40ee-85f5-b32b47273274",
       "title": "🔥 [Firebase-VM] Remote CLI Execution",
       "timestamp": 1794304755211
@@ -211,6 +226,42 @@
         "model": "gemini-3.8-flash",
         "timestamp": 1794309891729,
         "conversationId": "d43cc55a-9737-40ee-85f5-b32b47273274",
+        "viaFirebaseVm": true
+      }
+    ],
+    "632c92f4-876e-4cba-9931-42267f73fffc": [
+      {
+        "id": "vm_632c92f4",
+        "author": "User",
+        "content": "사이드바 닫는 버튼도 달아줘",
+        "feedback": "이 세션(`632c92f4-876e-4cba-9931-42267f73fffc`)은 **Firebase-VM (`agy-server`)** 내부의 `agy` CLI에 저장된 세션입니다. 이어서 질문을 입력하시면 `Firebase-VM`의 `agy`에서 바로 실행됩니다.",
+        "model": "gemini-4-argon",
+        "timestamp": 1794311942016,
+        "conversationId": "632c92f4-876e-4cba-9931-42267f73fffc",
+        "viaFirebaseVm": true
+      }
+    ],
+    "90aeb60e-0371-48a3-a062-3ecd8f8a9c41": [
+      {
+        "id": "vm_90aeb60e",
+        "author": "User",
+        "content": "현재 서버 호스트명과 위치를 짧게 알려줘",
+        "feedback": "이 세션(`90aeb60e-0371-48a3-a062-3ecd8f8a9c41`)은 **Firebase-VM (`agy-server`)** 내부의 `agy` CLI에 저장된 세션입니다. 이어서 질문을 입력하시면 `Firebase-VM`의 `agy`에서 바로 실행됩니다.",
+        "model": "gemini-4-argon",
+        "timestamp": 1794311942016,
+        "conversationId": "90aeb60e-0371-48a3-a062-3ecd8f8a9c41",
+        "viaFirebaseVm": true
+      }
+    ],
+    "ef1bc823-f123-4abc-bd63-d140acb613c7": [
+      {
+        "id": "vm_ef1bc823",
+        "author": "User",
+        "content": "ping",
+        "feedback": "이 세션(`ef1bc823-f123-4abc-bd63-d140acb613c7`)은 **Firebase-VM (`agy-server`)** 내부의 `agy` CLI에 저장된 세션입니다. 이어서 질문을 입력하시면 `Firebase-VM`의 `agy`에서 바로 실행됩니다.",
+        "model": "gemini-4-argon",
+        "timestamp": 1794311942016,
+        "conversationId": "ef1bc823-f123-4abc-bd63-d140acb613c7",
         "viaFirebaseVm": true
       }
     ]
