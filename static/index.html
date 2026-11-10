@@ -12,9 +12,10 @@
       --card-a: #1c2027;
       --border-color: #262b35;
       --text-main: #d1d5db;
-      --text-dim: #6b7280;
+      --text-dim: #71717a;
       --accent: #3b82f6;
       --accent-green: #10b981;
+      --accent-orange: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -28,25 +29,25 @@
 
     /* Sidebar */
     #sidebar {
-      width: 260px;
+      width: 270px;
       background-color: var(--sidebar-bg);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       padding: 16px;
-      gap: 18px;
+      gap: 16px;
       flex-shrink: 0;
       z-index: 10;
     }
     .sidebar-title {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       color: var(--text-dim);
       text-transform: uppercase;
     }
     .new-btn {
-      background-color: #1f242d;
+      background-color: #1a1e27;
       color: #fff;
       border: 1px solid var(--border-color);
       padding: 9px 12px;
@@ -56,7 +57,7 @@
       text-align: left;
       transition: 0.15s;
     }
-    .new-btn:hover { background-color: #2b323e; }
+    .new-btn:hover { background-color: #242a36; }
     
     .session-list {
       flex: 1;
@@ -76,9 +77,9 @@
       text-overflow: ellipsis;
       border: 1px solid transparent;
     }
-    .session-item:hover { background-color: #1a1e26; color: var(--text-main); }
+    .session-item:hover { background-color: #181c24; color: var(--text-main); }
     .session-item.active {
-      background-color: #1e2430;
+      background-color: #1e2533;
       border-color: #3b82f6;
       color: #fff;
       font-weight: 600;
@@ -87,7 +88,7 @@
     /* Model Selector */
     .select-box {
       width: 100%;
-      background-color: #181b22;
+      background-color: #161920;
       border: 1px solid var(--border-color);
       color: var(--text-main);
       padding: 8px 10px;
@@ -96,34 +97,50 @@
       outline: none;
     }
 
-    /* Usage Gauge */
+    /* Usage Gauge Panel */
     .usage-panel {
-      background: #15181e;
+      background: #14161c;
       padding: 12px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
-    .gauge-label {
+    .gauge-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-size: 11px;
+    }
+    .gauge-title { color: #9ca3af; font-weight: 600; }
+    .gauge-stat { color: #38bdf8; font-weight: 600; font-family: monospace; font-size: 11px; }
+    .gauge-subtext {
+      font-size: 10px;
       color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
     }
     .progress-bar {
       width: 100%;
-      height: 5px;
-      background: #252a34;
+      height: 6px;
+      background: #242933;
       border-radius: 3px;
       overflow: hidden;
+      margin-top: 4px;
     }
     .progress-fill {
       height: 100%;
       background: var(--accent-green);
-      width: 82%;
-      transition: width 0.3s;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .progress-fill.warning {
+      background: var(--accent-orange);
+    }
+    .progress-fill.danger {
+      background: #ef4444;
     }
 
     /* Main Content */
@@ -153,11 +170,10 @@
       flex-direction: column;
       gap: 20px;
       scroll-behavior: smooth;
-      /* 마지막 메시지가 가려지지 않도록 넉넉한 하단 공간 확보 */
-      padding-bottom: 140px;
+      padding-bottom: 150px;
     }
 
-    /* Card Comments */
+    /* Cards */
     .comment-block {
       display: flex;
       flex-direction: column;
@@ -189,7 +205,6 @@
       justify-content: space-between;
     }
 
-    /* Loading skeleton for answer */
     .card.loading {
       display: flex;
       align-items: center;
@@ -250,35 +265,61 @@
     .send-btn:disabled { background-color: #374151; cursor: not-allowed; }
 
     @media (max-width: 900px) {
-      .feed-container { padding: 16px 5% 140px 5%; }
+      .feed-container { padding: 16px 5% 150px 5%; }
       .input-bar { padding: 16px 5% 20px 5%; }
-      #sidebar { width: 220px; }
+      #sidebar { width: 230px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 좌측 사이드바 -->
+  <!-- 사이드바 -->
   <aside id="sidebar">
     <div class="sidebar-title">Workspaces</div>
     <button class="new-btn" onclick="createNewSession()">+ 새 메모 세션</button>
 
-    <div class="sidebar-title" style="margin-top: 10px;">Recent Sessions</div>
+    <div class="sidebar-title" style="margin-top: 6px;">Recent Sessions</div>
     <div class="session-list" id="sessionList"></div>
 
     <div class="sidebar-title">Engine Model</div>
     <select class="select-box" id="modelSelector">
+      <option value="vertex-agy" selected>Vertex AI (agy Core)</option>
       <option value="nemotron">Nemotron 120B (NVIDIA)</option>
       <option value="llama31">Llama 3.1 405B (Meta)</option>
-      <option value="vertex-agy" selected>Vertex AI (agy Core)</option>
     </select>
 
-    <div class="sidebar-title">Remaining Quota</div>
+    <!-- 동적 사용량/잔여량 % 패널 -->
+    <div class="sidebar-title">Quota Status</div>
     <div class="usage-panel">
-      <div class="gauge-label"><span>5시간 세션</span><span id="sessionQuotaText">88%</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="sessionQuotaBar" style="width: 88%;"></div></div>
-      <div class="gauge-label" style="margin-top:4px;"><span>주간 쿼터</span><span id="weeklyQuotaText">94%</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="weeklyQuotaBar" style="width: 94%; background: #3b82f6;"></div></div>
+      <!-- 5시간 세션 게이지 -->
+      <div>
+        <div class="gauge-header">
+          <span class="gauge-title">5시간 세션 한도</span>
+          <span class="gauge-stat" id="sessionUsedPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="sessionProgressBar"></div>
+        </div>
+        <div class="gauge-subtext">
+          <span>잔여: <b id="sessionRemainingPercent" style="color:#10b981;">100%</b></span>
+          <span id="sessionResetTime">5시간 주기</span>
+        </div>
+      </div>
+
+      <!-- 주간 쿼터 게이지 -->
+      <div>
+        <div class="gauge-header">
+          <span class="gauge-title">주간 누적 쿼터</span>
+          <span class="gauge-stat" id="weeklyUsedPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="weeklyProgressBar"></div>
+        </div>
+        <div class="gauge-subtext">
+          <span>잔여: <b id="weeklyRemainingPercent" style="color:#10b981;">100%</b></span>
+          <span id="weeklyResetTime">매주 월요일 갱신</span>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -300,6 +341,64 @@
   <script>
     let sessions = JSON.parse(localStorage.getItem("agy_sessions") || "[]");
     let currentSessionId = localStorage.getItem("agy_current_session") || null;
+    // 사용량 트래킹 (타임스탬프 기록)
+    let usageHistory = JSON.parse(localStorage.getItem("agy_usage_history") || "[]");
+
+    // 5시간 세션 최대 요청 수 기준 (예: 50회)
+    const MAX_SESSION_REQUESTS = 50;
+    // 1주일 최대 요청 수 기준 (예: 300회)
+    const MAX_WEEKLY_REQUESTS = 300;
+
+    function updateUsageGauges() {
+      const now = Date.now();
+      const fiveHoursAgo = now - (5 * 60 * 60 * 1000);
+      const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+      // 오래된 기록 정리
+      usageHistory = usageHistory.filter(ts => ts >= sevenDaysAgo);
+      localStorage.setItem("agy_usage_history", JSON.stringify(usageHistory));
+
+      // 5시간 내 요청 수 계산
+      const sessionRequests = usageHistory.filter(ts => ts >= fiveHoursAgo).length;
+      const sessionUsedPct = Math.min(100, Math.round((sessionRequests / MAX_SESSION_REQUESTS) * 100));
+      const sessionRemainPct = Math.max(0, 100 - sessionUsedPct);
+
+      // 주간 요청 수 계산
+      const weeklyRequests = usageHistory.length;
+      const weeklyUsedPct = Math.min(100, Math.round((weeklyRequests / MAX_WEEKLY_REQUESTS) * 100));
+      const weeklyRemainPct = Math.max(0, 100 - weeklyUsedPct);
+
+      // 5시간 리셋 남은 시간 계산
+      const oldestInFiveHours = usageHistory.find(ts => ts >= fiveHoursAgo);
+      let sessionResetText = "5시간 주기";
+      if (oldestInFiveHours) {
+        const diffMs = (oldestInFiveHours + 5 * 60 * 60 * 1000) - now;
+        const hrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        sessionResetText = `${hrs}h ${mins}m 후 리셋`;
+      }
+
+      // DOM 반영 - 5시간 세션
+      document.getElementById("sessionUsedPercent").textContent = `사용 ${sessionUsedPct}%`;
+      document.getElementById("sessionRemainingPercent").textContent = `${sessionRemainPct}%`;
+      const sessBar = document.getElementById("sessionProgressBar");
+      sessBar.style.width = sessionUsedPct + "%";
+      sessBar.className = `progress-fill ${sessionUsedPct > 80 ? 'danger' : sessionUsedPct > 60 ? 'warning' : ''}`;
+      document.getElementById("sessionResetTime").textContent = sessionResetText;
+
+      // DOM 반영 - 주간 쿼터
+      document.getElementById("weeklyUsedPercent").textContent = `사용 ${weeklyUsedPct}%`;
+      document.getElementById("weeklyRemainingPercent").textContent = `${weeklyRemainPct}%`;
+      const weekBar = document.getElementById("weeklyProgressBar");
+      weekBar.style.width = weeklyUsedPct + "%";
+      weekBar.className = `progress-fill ${weeklyUsedPct > 80 ? 'danger' : weeklyUsedPct > 60 ? 'warning' : ''}`;
+    }
+
+    function recordUsage() {
+      usageHistory.push(Date.now());
+      localStorage.setItem("agy_usage_history", JSON.stringify(usageHistory));
+      updateUsageGauges();
+    }
 
     function scrollToBottom(force = false) {
       const feed = document.getElementById("feedContainer");
@@ -326,6 +425,8 @@
       }
       renderSessionList();
       renderFeed();
+      updateUsageGauges();
+      setInterval(updateUsageGauges, 60000); // 1분마다 주기적 갱신
     }
 
     function saveSessions() {
@@ -384,13 +485,11 @@
         const block = document.createElement("div");
         block.className = "comment-block";
 
-        // 질문 카드
         const qCard = document.createElement("div");
         qCard.className = "card question";
         qCard.innerHTML = `<div class="meta-tag"><span>USER NOTE</span><span>${pair.time || ''}</span></div><div>${escapeHtml(pair.question)}</div>`;
         block.appendChild(qCard);
 
-        // 답변 카드 (있을 경우에만)
         if (pair.answer !== undefined) {
           const aCard = document.createElement("div");
           aCard.className = "card answer";
@@ -401,7 +500,6 @@
         feed.appendChild(block);
       });
 
-      // 마지막 메시지까지 확실히 보이도록 스크롤 하단 이동
       scrollToBottom(true);
     }
 
@@ -414,6 +512,9 @@
       const selectedModel = document.getElementById("modelSelector").value;
       input.value = "";
       btn.disabled = true;
+
+      // 질문 전송 시 쿼터 기록 트리거
+      recordUsage();
 
       const sess = getCurrentSession();
       if (sess.items.length === 0) {
@@ -431,7 +532,6 @@
       saveSessions();
       renderFeed();
 
-      // 로딩 카드 추가
       const feed = document.getElementById("feedContainer");
       const loadingCard = document.createElement("div");
       loadingCard.className = "card answer loading";
@@ -470,7 +570,6 @@
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    // Enter 키로 전송, Shift+Enter 줄바꿈
     document.getElementById("promptInput").addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
