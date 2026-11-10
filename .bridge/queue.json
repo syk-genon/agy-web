@@ -1,15 +1,11 @@
 {
-  "status": "completed",
-  "lastProcessedId": "test_v3_1794305086286",
-  "completedAt": 1794305089948,
-  "latestNote": {
-    "id": "test_v3_1794305086286",
+  "status": "pending",
+  "request": {
+    "id": "auth_code_1794305213346",
     "author": "User",
-    "content": "상태 확인",
-    "feedback": "### 🔐 Firebase-VM (`agy-server`) `agy` CLI 로그인이 필요합니다\n현재 `Firebase-VM` (`35.188.210.15`, 계정 `syk4441`)의 `agy` CLI OAuth 토큰이 만료되어 재인증 대기 중입니다.\n\n1. 아래 구글 인증 링크를 클릭해 로그인하세요:\n   👉 **[Google 계정으로 Firebase-VM agy 로그인하기](https://accounts.google.com/o/oauth2/auth?access_type=offline&client_id=1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com&code_challenge=LVXQa50oMqcyMkI5hjkKPQq4dm_CraSpmpON_tfrWqA&code_challenge_method=S256&prompt=consent&redirect_uri=https%3A%2F%2Fantigravity.google%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faicode+openid&state=m2hbJTcnCAEBA24XJJpJog)**\n\n2. 로그인 후 화면에 표시되는 **인증 코드(Authorization Code, `4/...` 형태)**를 복사하여 **이 웹페이지 하단 채팅창에 그대로 입력하고 등록**해 주시면 즉시 `Firebase-VM`의 `agy`가 로그인됩니다!",
+    "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
-    "timestamp": 1794305089948,
-    "conversationId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
-    "viaFirebaseVm": true
+    "content": "4/0AUn6Hd8f8QoIgm78dmHYuLB12xzUEGXH7psUPJiwvit2vj-8szSbCWz6-qAOoPoQLCqG3g",
+    "timestamp": 1794305213346
   }
 }
