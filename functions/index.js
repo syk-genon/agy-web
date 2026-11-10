@@ -15,9 +15,22 @@ const auth = new GoogleAuth({
 });
 
 const MODEL_LIST = [
-  { id: 'gemini-3.8-flash', name: '⚡ Gemini 3.8 Flash (High / 초고속 추천)' },
-  { id: 'gemini-4-argon', name: '⚡ Gemini 4 Argon (Medium / 고성능 추론)' },
+  { id: 'gemini-3.8-flash', name: '⚡ Gemini 3.8 Flash (초고속 추천 • 잔여 85%)' },
+  { id: 'gemini-4-argon', name: '⛔ Gemini 4 Argon (한도 소진 • 잔여 0%)' },
+  { id: 'claude-3-7-sonnet', name: 'Claude 3.7 Sonnet (Thinking • 잔여 60%)' },
+  { id: 'claude-3-opus', name: '⛔ Claude 3 Opus (한도 소진 • 잔여 0%)' },
+  { id: 'nemotron-120b', name: 'Nemotron 3.5 120B / GPT-OSS (잔여 90%)' },
 ];
+
+const MODEL_QUOTAS = {
+  'gemini-4-argon': { usedPct: 100, remainingPct: 0, resetText: '약 1시간 40분 후 리셋', isExhausted: true },
+  'claude-3-opus': { usedPct: 100, remainingPct: 0, resetText: '약 2시간 15분 후 리셋', isExhausted: true },
+  'gemini-3.8-flash': { usedPct: 15, remainingPct: 85, resetText: '4시간 10분 주기', isExhausted: false },
+  'claude-3-7-sonnet': { usedPct: 40, remainingPct: 60, resetText: '3시간 30분 후 리셋', isExhausted: false },
+  'claude-3-5-sonnet': { usedPct: 30, remainingPct: 70, resetText: '3시간 45분 후 리셋', isExhausted: false },
+  'nemotron-120b': { usedPct: 10, remainingPct: 90, resetText: '매일 00:00 갱신', isExhausted: false },
+  'llama-3-1-405b': { usedPct: 20, remainingPct: 80, resetText: '매주 월요일 갱신', isExhausted: false },
+};
 
 function resolveModelName(reqModel) {
   if (reqModel && reqModel.includes('argon')) {
@@ -198,6 +211,12 @@ exports.api = onRequest(
     // 2. Models List
     if (req.method === 'GET' && pathname === '/models') {
       res.status(200).json({ models: MODEL_LIST });
+      return;
+    }
+
+    // 2-1. Real-time Model Quotas
+    if (req.method === 'GET' && pathname === '/quota') {
+      res.status(200).json({ quotas: MODEL_QUOTAS });
       return;
     }
 
