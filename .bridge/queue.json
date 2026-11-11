@@ -1,15 +1,12 @@
 {
-  "status": "completed",
-  "lastProcessedId": "req_1794358463385_c0k3",
-  "completedAt": 1794358473208,
-  "latestNote": {
-    "id": "req_1794358463385_c0k3",
+  "status": "pending",
+  "request": {
+    "id": "req_1794358543328_456u",
     "author": "User",
+    "sessionId": "s_mwbeolm2_c8v1",
+    "model": "gemini-3.8-flash",
+    "modelLabel": "⚡ Gemini 3.8 Flash (초고속 여유 85.9%)",
     "content": "프로젝트 네크로 잘 만들어졌는지 버그없는지 분석해주고 특히 소환수들 인게임 이미지 다시 만들어줘",
-    "feedback": "{\"event\":\"init\",\"conversation_id\":\"42809842-e54b-48f9-8127-5aed96ea66cf\",\"init\":{\"cwd\":\"/home/syk4441\",\"tools\":[\"ask_custom_permission\",\"ask_permission\",\"ask_question\",\"browser_click_element\",\"browser_drag_pixel_to_pixel\",\"browser_get_dom\",\"browser_get_network_request\",\"browser_input\",\"browser_list_network_requests\",\"browser_mouse_down\",\"browser_mouse_up\",\"browser_move_mouse\",\"browser_press_key\",\"browser_refresh_page\",\"browser_resize_window\",\"browser_scroll\",\"browser_scroll_dom\",\"browser_select_option\",\"browser_subagent\",\"call_mcp_tool\",\"capture_browser_console_logs\",\"capture_browser_screenshot\",\"click_browser_pixel\",\"command_status\",\"define_subagent\",\"delete_knowledge\",\"execute_browser_javascript\",\"find_by_name\",\"finish\",\"generate_image\",\"grep_search\",\"invoke_subagent\",\"list_browser_pages\",\"list_dir\",\"list_permissions\",\"list_plugin_accounts\",\"list_resources\",\"manage_inbox\",\"manage_subagents\",\"manage_task\",\"multi_replace_file_content\",\"notebook_edit\",\"notebook_execution\",\"open_browser_url\",\"read_browser_page\",\"read_resource\",\"read_url_content\",\"replace_file_content\",\"run_command\",\"run_workflow\",\"schedule\",\"search_marketplace\",\"search_web\",\"sed_file\",\"send_command_input\",\"send_message\",\"view_file\",\"wait\",\"wait_5_seconds\",\"write_to_file\"],\"permission_mode\":\"always-proceed\"}}\n{\"event\":\"step_update\",\"step_update\":{\"conversation_id\":\"42809842-e54b-48f9-8127-5aed96ea66cf\",\"step_index\":0,\"state\":\"DONE\",\"step_type\":\"user_input\"}}\n{\"event\":\"step_update\",\"step_update\":{\"conversation_id\":\"42809842-e54b-48f9-8127-5aed96ea66cf\",\"step_index\":1,\"state\":\"DONE\",\"step_type\":\"error_message\"}}\n{\"event\":\"result\",\"result\":{\"conversation_id\":\"42809842-e54b-48f9-8127-5aed96ea66cf\",\"status\":\"ERROR\",\"response\":\"\",\"error\":\"Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 76h9m9s.\",\"duration_seconds\":0,\"num_turns\":1,\"usage\":{\"input_tokens\":0,\"output_tokens\":0,\"thinking_tokens\":0,\"cache_read_tokens\":0,\"total_tokens\":0},\"finished_reason\":\"error\"}}\n\nerror: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 76h9m9s.\nAGY_ERROR: {\"short_error\":\"RESOURCE_EXHAUSTED (code 429): Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 76h9m9s.\",\"status\":\"RESOURCE_EXHAUSTED\",\"error_code\":429,\"code_kind\":\"http\",\"retryable\":true,\"error_id\":\"99f5e95b-d6a6-4105-b313-0cec3ac3a2db-1\"}",
-    "model": "gemini-4-argon",
-    "timestamp": 1794358473208,
-    "conversationId": "s_mwbeolm2_c8v1",
-    "viaFirebaseVm": true
+    "timestamp": 1794358543330
   }
 }
