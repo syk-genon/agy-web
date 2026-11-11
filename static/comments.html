@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlackNote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Markdown & Code Highlight -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <style>
+    :root {
+      --bg-black: #08090b;
+      --bg-sidebar: #0e1015;
+      --bg-card-q: #141721;
+      --bg-card-a: #0f121a;
+      --border: #1e222e;
+      --border-light: #2d3345;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-cyan: #06b6d4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --purple: #8b5cf6;
+      --text: #f3f4f6;
+      --text-sub: #9ca3af;
+      --text-muted: #64748b;
+      --code-bg: #050608;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
+
+    body {
+      background-color: var(--bg-black);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* ================= Sidebar ================= */
+    .sidebar {
+      width: 300px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+    }
+    .sidebar.collapsed {
+      width: 0 !important;
+      min-width: 0 !important;
+      max-width: 0 !important;
+      border-right: none !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.sidebar-collapsed .sidebar {
+      width: 0 !important;
+      min-width: 0 !important;
+      max-width: 0 !important;
+      border-right: none !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.sidebar-collapsed .input-bar {
+      left: 0 !important;
+    }
+
+    .sidebar-header {
+      padding: 1rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      letter-spacing: -0.3px;
+    }
+    .badge-bridge {
+      font-size: 0.65rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .badge-bridge .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.9rem 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 1. Sessions List */
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      max-height: 195px;
+      overflow-y: auto;
+    }
+    .session-item {
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      font-size: 0.79rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+      text-align: left;
+    }
+    .session-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+    .session-item.active {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.35);
+      color: #93c5fd;
+      font-weight: 600;
+    }
+    .session-item .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-right: 0.5rem;
+      flex-shrink: 0;
+    }
+    .session-item.active .dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    }
+    .session-title-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .btn-new-session {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--border-light);
+      color: var(--text);
+      padding: 0.25rem 0.55rem;
+      border-radius: 5px;
+      font-size: 0.71rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-new-session:hover {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* 2. Model Selection */
+    .model-select-box {
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .model-dropdown {
+      width: 100%;
+      background: #0a0c12;
+      color: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.79rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+    .model-dropdown:focus {
+      border-color: var(--accent);
+    }
+    .model-dropdown optgroup {
+      background: #0e1015;
+      color: #93c5fd;
+      font-weight: 700;
+    }
+    .model-dropdown option {
+      background: #141721;
+      color: #f3f4f6;
+    }
+    .model-Quick-pills {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+    }
+    .pill-btn {
+      background: #161a26;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 0.35rem 0.4rem;
+      border-radius: 5px;
+      font-size: 0.71rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .pill-btn:hover {
+      border-color: var(--border-light);
+      color: #fff;
+    }
+    .pill-btn.active {
+      background: rgba(59, 130, 246, 0.16);
+      border-color: var(--accent);
+      color: #93c5fd;
+      font-weight: 600;
+    }
+
+    /* 3. Per-Model Quota / Remaining Usage Monitor */
+    .quota-box {
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .active-quota-banner {
+      background: rgba(59, 130, 246, 0.08);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 5px;
+      padding: 0.55rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .aq-title {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #93c5fd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .aq-remain {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #34d399;
+    }
+    .aq-sub {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* All Model Tiers Summary List */
+    .tier-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 0.65rem;
+    }
+    .tier-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+    }
+    .tier-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.71rem;
+      color: var(--text-sub);
+    }
+    .tier-row strong {
+      color: #e2e8f0;
+    }
+    .progress-track {
+      height: 5px;
+      background: #1a1e2b;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+    .fill-opus { background: linear-gradient(90deg, #f59e0b, #ec4899); }
+    .fill-sonnet { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+    .fill-flash { background: linear-gradient(90deg, #10b981, #06b6d4); }
+    .fill-oss { background: linear-gradient(90deg, #22c55e, #84cc16); }
+    .fill-danger { background: #ef4444 !important; }
+
+    .quota-footer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.67rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      border-top: 1px dashed var(--border);
+      padding-top: 0.5rem;
+    }
+
+    /* ================= Main Content ================= */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 100vh;
+      background: var(--bg-black);
+    }
+
+    /* Top Bar */
+    .topbar {
+      height: 48px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 9, 11, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-toggle-sidebar {
+      background: #141721;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .btn-toggle-sidebar:hover {
+      color: #fff;
+      border-color: var(--accent);
+      background: #1b202e;
+    }
+    .btn-sidebar-close {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-sub);
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .btn-sidebar-close:hover {
+      background: #1e222e;
+      border-color: var(--border);
+      color: #fff;
+    }
+    .current-session-label {
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .current-session-label strong {
+      color: #fff;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-action {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-sub);
+      padding: 0.25rem 0.6rem;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s;
+    }
+    .btn-action:hover {
+      color: #fff;
+      border-color: var(--border-light);
+    }
+
+    /* Notepad Feed */
+    .feed-container {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1.2rem 8rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+    }
+
+    /* Thread Item */
+    .thread {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Question Box */
+    .box-q {
+      background: var(--bg-card-q);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.9rem 1.15rem;
+    }
+    .meta-q {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+    .meta-q .author {
+      color: #93c5fd;
+      font-weight: 600;
+    }
+    .text-q {
+      font-size: 0.94rem;
+      color: #f1f5f9;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.55;
+    }
+
+    /* Answer Box (대댓글 형태) */
+    .box-a {
+      background: var(--bg-card-a);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-left: 1.1rem;
+      padding: 1rem 1.25rem;
+    }
+    .meta-a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-bottom: 0.55rem;
+    }
+    .meta-a .author {
+      color: #60a5fa;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .badge-model-tag {
+      font-size: 0.65rem;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+    }
+    .badge-vm-tag {
+      font-size: 0.63rem;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* Markdown Body */
+    .markdown-body {
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      line-height: 1.65;
+    }
+    .markdown-body p { margin-bottom: 0.65rem; }
+    .markdown-body p:last-child { margin-bottom: 0; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+      color: #fff;
+      margin: 0.85rem 0 0.4rem;
+      font-weight: 600;
+    }
+    .markdown-body h1 { font-size: 1.15rem; }
+    .markdown-body h2 { font-size: 1.05rem; }
+    .markdown-body h3 { font-size: 0.95rem; }
+    .markdown-body ul, .markdown-body ol {
+      margin-left: 1.25rem;
+      margin-bottom: 0.65rem;
+    }
+    .markdown-body code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 0.85rem;
+      color: #38bdf8;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      margin: 0.75rem 0;
+      overflow-x: auto;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+    .markdown-body blockquote {
+      border-left: 2px solid var(--accent);
+      padding-left: 0.75rem;
+      color: var(--text-sub);
+      margin: 0.65rem 0;
+    }
+
+    /* Loading Indicator */
+    .loading-box {
+      background: var(--bg-card-a);
+      border: 1px dashed var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin-left: 1.1rem;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+    }
+    .dot-pulse {
+      display: inline-flex;
+      gap: 4px;
+    }
+    .dot-pulse span {
+      width: 5px;
+      height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+    .dot-pulse span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-pulse span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Bottom Input Bar */
+    .input-bar {
+      position: fixed;
+      bottom: 0;
+      left: 300px;
+      right: 0;
+      background: rgba(8, 9, 11, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding: 0.85rem 1.25rem;
+      z-index: 40;
+      transition: left 0.25s ease;
+    }
+    .input-inner {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-end;
+    }
+    .input-box {
+      flex: 1;
+      min-height: 44px;
+      max-height: 140px;
+      background: #11141c;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.65rem 0.9rem;
+      color: var(--text);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-box:focus {
+      border-color: var(--accent);
+    }
+    .btn-send {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.65rem 1.2rem;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+      height: 44px;
+    }
+    .btn-send:hover { opacity: 0.9; }
+    .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        width: 280px !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+      .sidebar.open {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.6);
+      }
+      body.sidebar-collapsed .sidebar {
+        width: 280px !important;
+        transform: translateX(-100%) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+      body.sidebar-collapsed .sidebar.open {
+        transform: translateX(0) !important;
+      }
+      .input-bar {
+        left: 0 !important;
+      }
+      .btn-toggle-sidebar .btn-toggle-text {
+        display: none;
+      }
+      .box-a, .loading-box {
+        margin-left: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= Sidebar ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-title">
+        <span>📝 BlackNote</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge-bridge" id="bridgeBadge">
+          <span class="pulse-dot"></span>
+          <span>VM Bridge</span>
+        </span>
+        <button class="btn-sidebar-close" id="sidebarCloseBtn" onclick="toggleSidebar(false)" title="사이드바 닫기" aria-label="사이드바 닫기">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+      <!-- 1. VM Sessions List -->
+      <div>
+        <div class="section-title">
+          <span>작업 세션 (VM Sessions)</span>
+          <button class="btn-new-session" onclick="createNewSession()">+ 새 세션</button>
+        </div>
+        <div class="session-list" id="sessionList"></div>
+      </div>
+
+      <!-- 2. Full Model Selector (Opus, Sonnet, Gemini, OSS) -->
+      <div>
+        <div class="section-title">
+          <span>모델 선택 (Opus / Gemini / OSS)</span>
+        </div>
+        <div class="model-select-box">
+          <select id="modelDropdown" class="model-dropdown" onchange="onDropdownModelChange(this.value)">
+            <optgroup label="⚡ 추천 (여유 / 초고속)">
+              <option value="gemini-3.8-flash" selected>⚡ Gemini 3.8 Flash (초고속 • 잔여 94%)</option>
+            </optgroup>
+            <optgroup label="👑 Anthropic Claude">
+              <option value="claude-3-7-sonnet">⚡ Claude 3.7 Sonnet (Thinking • 잔여 70%)</option>
+              <option value="claude-sonnet-5-5">🚀 Claude Sonnet 5.5 (잔여 70%)</option>
+              <option value="claude-3-opus">⚠️ Claude 3 Opus (5h 한도 소진됨 • 리셋 대기)</option>
+            </optgroup>
+            <optgroup label="✨ Google Gemini">
+              <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash (잔여 94%)</option>
+              <option value="gemini-4-argon">⚠️ Gemini 4 Argon (5h 한도 소진됨 • 리셋 대기)</option>
+            </optgroup>
+            <optgroup label="🌐 Open Source / OSS (Llama / DeepSeek / NIM)">
+              <option value="meta/llama-3.1-405b-instruct">🦙 Meta Llama 3.1 405B (잔여 98%)</option>
+              <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">🟢 NVIDIA Nemotron 120B (잔여 95%)</option>
+              <option value="deepseek-ai/deepseek-r1">🐋 DeepSeek R1 (잔여 98%)</option>
+              <option value="qwen/qwen-2.5-coder-32b-instruct">💻 Qwen 2.5 Coder 32B (잔여 99%)</option>
+            </optgroup>
+          </select>
+
+          <div class="model-Quick-pills">
+            <button class="pill-btn" data-model="gemini-3.8-flash" onclick="quickSelectModel('gemini-3.8-flash')">⚡ Flash 3.8</button>
+            <button class="pill-btn" data-model="claude-3-7-sonnet" onclick="quickSelectModel('claude-3-7-sonnet')">⚡ Sonnet 3.7</button>
+            <button class="pill-btn" data-model="meta/llama-3.1-405b-instruct" onclick="quickSelectModel('meta/llama-3.1-405b-instruct')">🦙 Llama 405B</button>
+            <button class="pill-btn" data-model="claude-3-opus" onclick="quickSelectModel('claude-3-opus')" style="color:#ef4444;">⚠️ Opus (소진)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Per-Model Quota & Remaining Usage Monitor -->
+      <div>
+        <div class="section-title">
+          <span>모델별 잔여량 (Remaining Quota)</span>
+          <span style="font-size: 0.68rem; color: #34d399;" id="timer5h">04:59:59</span>
+        </div>
+
+        <div class="quota-box">
+          <!-- Selected Model Detailed Remaining Box -->
+          <div class="active-quota-banner">
+            <div class="aq-title">
+              <span id="aqModelName">👑 Claude 3 Opus</span>
+              <span class="aq-remain" id="aqRemain5h">25회 남음 (100%)</span>
+            </div>
+            <div class="progress-track" style="height: 6px;">
+              <div class="progress-fill fill-opus" id="aqBar5h" style="width: 100%;"></div>
+            </div>
+            <div class="aq-sub">
+              <span id="aqUsed5h">5시간: 0 / 25회 사용</span>
+              <span id="aqRemainWeekly" style="color:#c084fc;">주간: 250회 남음</span>
+            </div>
+          </div>
+
+          <!-- All 5 Model Groups Independent Remaining Bars -->
+          <div class="tier-list">
+            <!-- Tier 1: Opus (Recovered) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>👑 <strong>Claude 3 Opus</strong></span>
+                <span id="tierText-opus" style="color:#f59e0b; font-weight:600;">25 / 25 남음 (100%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-opus" id="tierBar-opus" style="width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 2: Argon 4 (Recovered) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>🧠 <strong>Gemini 4 Argon</strong></span>
+                <span id="tierText-argon" style="color:#818cf8; font-weight:600;">60 / 60 남음 (100%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-sonnet" id="tierBar-argon" style="width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 3: Sonnet (Available) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>⚡ <strong>Claude Sonnet 3.7</strong></span>
+                <span id="tierText-sonnet" style="color:#818cf8; font-weight:600;">48 / 60 남음 (80%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-sonnet" id="tierBar-sonnet" style="width:80%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 4: Flash (High Capacity) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>⚡ <strong>Gemini 3.8 Flash</strong> (추천)</span>
+                <span id="tierText-flash" style="color:#34d399; font-weight:600;">192 / 200 남음 (96%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-flash" id="tierBar-flash" style="width:96%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 5: OSS -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>🦙 <strong>OSS (Llama/NIM/R1)</strong></span>
+                <span id="tierText-oss" style="color:#a3e635; font-weight:600;">298 / 300 남음 (99%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-oss" id="tierBar-oss" style="width:99%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.65rem; text-align: center;">
+            <button onclick="resetAllQuotas()" style="background: #171b26; border: 1px solid var(--border); color: #60a5fa; border-radius: 5px; padding: 5px 10px; font-size: 0.72rem; cursor: pointer; width: 100%; transition: all 0.15s; font-weight: 500;">
+              ↻ 5시간 쿼터 즉시 100% 초기화
+            </button>
+          </div>
+
+          <div class="quota-footer-row">
+            <span>주간 리셋: 일요일 자정</span>
+            <button onclick="resetAllQuotas()" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:0.65rem; text-decoration:underline;">초기화</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= Main Area ================= -->
+  <div class="main-wrapper">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn-toggle-sidebar" id="btnToggleSidebar" onclick="toggleSidebar()" title="사이드바 열기/닫기" aria-label="사이드바 열기/닫기">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+          </svg>
+          <span class="btn-toggle-text">사이드바</span>
+        </button>
+        <div class="current-session-label">
+          <span>세션: <strong id="currentSessionDisplay">현재 세션</strong></span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-action" onclick="syncFromCloudBridge(true)">
+          <span>🔗</span>
+          <span>VM 동기화</span>
+        </button>
+      </div>
+    </div>
+
+    <main class="feed-container" id="feedContainer"></main>
+
+    <div class="input-bar">
+      <div class="input-inner">
+        <textarea 
+          id="inputBox" 
+          class="input-box" 
+          rows="1" 
+          placeholder="메모나 질문을 입력하세요... (Enter로 전송)"
+        ></textarea>
+        <button id="sendBtn" class="btn-send" onclick="sendNote()">
+          <span>등록</span>
+          <span>↵</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const REPO = 'syk-genon/agy-web';
+    const SESSIONS_LIST_KEY = 'agy_bn_sessions_list_v5';
+    const SESSIONS_DATA_KEY = 'agy_bn_sessions_data_v5';
+    const QUOTA_STORE_KEY = 'agy_bn_per_model_quota_v5';
+    const DEFAULT_SESSION_ID = 'bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2';
+
+    let currentSessionId = localStorage.getItem('agy_current_session_v5') || DEFAULT_SESSION_ID;
+    let selectedModel = localStorage.getItem('agy_model_choice_v5') || 'gemini-3.8-flash';
+    let isSubmitting = false;
+
+    const MODEL_LABELS = {
+      'claude-3-opus': '👑 Claude 3 Opus',
+      'claude-3-7-sonnet': '⚡ Claude 3.7 Sonnet',
+      'claude-sonnet-5-5': '🚀 Claude Sonnet 5.5',
+      'gemini-4-argon': '🧠 Gemini 4 Argon',
+      'gemini-3.8-flash': '⚡ Gemini 3.8 Flash',
+      'meta/llama-3.1-405b-instruct': '🦙 Llama 3.1 405B (OSS)',
+      'nvidia/nemotron-3.5-super-vl-120b-a12b': '🟢 Nemotron 120B (OSS)',
+      'deepseek-ai/deepseek-r1': '🐋 DeepSeek R1 (OSS)',
+      'qwen/qwen-2.5-coder-32b-instruct': '💻 Qwen 2.5 Coder (OSS)'
+    };
+
+    // Per-Model Tier Quota Definitions
+    const TIER_CONFIG = {
+      opus: {
+        name: '👑 Claude 3 Opus',
+        max5h: 25,
+        maxWeekly: 250,
+        barClass: 'fill-opus',
+        isExhausted: false
+      },
+      argon: {
+        name: '🧠 Gemini 4 Argon',
+        max5h: 60,
+        maxWeekly: 800,
+        barClass: 'fill-sonnet',
+        isExhausted: false
+      },
+      sonnet: {
+        name: '⚡ Claude Sonnet 3.7',
+        max5h: 60,
+        maxWeekly: 800,
+        barClass: 'fill-sonnet',
+        isExhausted: false
+      },
+      flash: {
+        name: '⚡ Gemini 3.8 Flash (초고속 여유)',
+        max5h: 200,
+        maxWeekly: 3000,
+        barClass: 'fill-flash',
+        isExhausted: false
+      },
+      oss: {
+        name: '🦙 OSS (Llama / NIM / R1)',
+        max5h: 300,
+        maxWeekly: 5000,
+        barClass: 'fill-oss',
+        isExhausted: false
+      }
+    };
+
+    function getModelTierKey(modelId) {
+      if (!modelId) return 'flash';
+      if (modelId.includes('opus')) return 'opus';
+      if (modelId.includes('argon')) return 'argon';
+      if (modelId.includes('sonnet')) return 'sonnet';
+      if (modelId.includes('flash')) return 'flash';
+      return 'oss';
+    }
+
+    // Default Sessions
+    const DEFAULT_SESSIONS_LIST = [
+      { conversationId: 'bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2', title: '📌 현재 세션: BlackNote & 브릿지', timestamp: Date.now() },
+      { conversationId: 'f12d753d-ea0a-40bd-aced-3e046cf4d9f1', title: '💀 사령군주 서바이버즈 설계 v2', timestamp: Date.now() - 3600000 * 12 },
+      { conversationId: '816d132c-e809-478e-8516-d98e03339327', title: '⚔️ Necro Survivors 코드리뷰/배포', timestamp: Date.now() - 3600000 * 28 },
+      { conversationId: 'd64f4416-2892-4c0f-ad76-70f06d6818f6', title: '🎮 사령군주 16비트 도트 RPG', timestamp: Date.now() - 3600000 * 48 },
+      { conversationId: '0ca70955-e9a6-4908-8b79-55a29f35ee67', title: '☁️ GDrive & 이미지 생성 연동', timestamp: Date.now() - 3600000 * 72 },
+    ];
+
+    const DEFAULT_SESSIONS_DATA = {
+      'bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2': [
+        {
+          id: 's1-1',
+          author: 'User',
+          content: '지금 이 agy 를 웹에서 질문하고 답변만 댓글형식으로 붙여주는 웹페이지를 만들고싶어. 스트리밍이나 이런거 필요없고 답변이 완료되면 그냥 댓글달리게. 가능해?',
+          feedback: '네, 완전히 가능합니다! 스트리밍 타이핑 없이 백엔드에서 답변이 완성되면 통째로 대댓글 카드로 딱 붙는 Non-streaming 댓글 피드 웹페이지를 구성했습니다.',
+          model: 'gemini-3.8-flash',
+          timestamp: Date.now() - 1000 * 60 * 35,
+          conversationId: 'bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2'
+        },
+        {
+          id: 's1-2',
+          author: 'User',
+          content: '사용량 잔여량 저거 안맞는거같은데? 모델별로 다 다른데 이상하게만 나오고',
+          feedback: `정확히 짚어주셨습니다! 기존에는 모든 모델이 단일 카운터(50회)로 묶여 있었으나, 이제 **모델 등급별 독립 쿼터 및 잔여량 시스템**으로 전면 수정했습니다:
+
+1. **👑 Claude 3 Opus**: 5시간 **25회** / 주간 **250회** (독립 차감)
+2. **🧠 Claude Sonnet & Gemini 4 Argon**: 5시간 **60회** / 주간 **800회** (독립 차감)
+3. **⚡ Gemini 3.8 Flash**: 5시간 **200회** / 주간 **3,000회** (독립 차감)
+4. **🦙 OSS (Llama 3.1 405B / Nemotron / DeepSeek R1)**: 5시간 **300회** / 주간 **5,000회** (독립 차감)
+
+모델을 변경할 때마다 상단 배너와 하단 4개 모델군별 게이지 바에 각각의 **실제 남은 횟수(잔여량)**가 실시간으로 정확히 표시됩니다.`,
+          model: 'claude-3-opus',
+          timestamp: Date.now() - 1000 * 60 * 1,
+          conversationId: 'bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2'
+        }
+      ],
+      'f12d753d-ea0a-40bd-aced-3e046cf4d9f1': [
+        {
+          id: 's2-1',
+          author: 'User',
+          content: '뱀서류 설계서(vampire_survivors_design.md) 리뷰 및 《목적을 잃지 않는 사령군주: 서바이버즈》 마스터 설계서 v2.0 작성',
+          feedback: `### 💀 《목적을 잃지 않는 사령군주: 서바이버즈》 마스터 설계서 v2.0 요약
+- **기반 프로젝트**: 기존 웹 RPG(\`project_necro\`)의 세계관·수식·1,950개 도트 에셋 100% 계승
+- **엔진 & 기술 스택**: \`Phaser 3 + TypeScript + Vite\` (모바일 패키징: \`Capacitor\`)
+- **한 판 구성**: 10분 (600초) = 100초 × 6웨이브 (W5 수문장 네임드, W6 지역 최종 보스 처치 시 클리어)
+- **소환수(군단) 시스템**: 이동형 호위/돌격 군단 (해골 전사·궁수·마법사·듀라한 아서), 개별 HP 및 길막 바리케이드 판정`,
+          model: 'claude-3-opus',
+          timestamp: Date.now() - 3600000 * 12,
+          conversationId: 'f12d753d-ea0a-40bd-aced-3e046cf4d9f1'
+        }
+      ],
+      '816d132c-e809-478e-8516-d98e03339327': [
+        {
+          id: 's3-1',
+          author: 'User',
+          content: 'Necro Survivors 코드 리뷰 치명적 버그 수정 및 소환수 그래픽 리뉴얼 후 Firebase 배포',
+          feedback: `### ⚔️ Necro Survivors 코드 리뷰 조치 및 배포 완료
+1. **이펙트 미출력 버그 수정 (\`BattleScene.ts\`, \`Projectile.ts\`)**: 즉발/체인 스킬 트윈 애니메이션(0.3~0.5초) 분리 완료.
+2. **「죽음의 손아귀」 각성 불가 해결 (\`skillsData.ts\`)**: 흡혈 패시브(\`pas_blood_vamp\`) 매핑 복구 완료.
+3. **고품질 투명 스프라이트 교체**: \`https://project-necro-54deb.web.app\` 배포 완료.`,
+          model: 'gemini-4-argon',
+          timestamp: Date.now() - 3600000 * 28,
+          conversationId: '816d132c-e809-478e-8516-d98e03339327'
+        }
+      ],
+      'd64f4416-2892-4c0f-ad76-70f06d6818f6': [
+        {
+          id: 's4-1',
+          author: 'User',
+          content: '웹소설 원작 16비트 도트 액션 RPG 《목적을 잃지 않는 사령군주》 인트로/커스터마이징/배틀 화면 구축',
+          feedback: `### 🎮 사령군주 16비트 도트 액션 RPG 화면 및 사운드 구축
+- 타이틀(\`#screen-start\`), 프롤로그(\`#screen-intro\`), 12대 직업 커스터마이징(\`#screen-customization\`), 전투 스테이지(\`#screen-battle\`) 및 BGM 사운드 엔진 연동 완료.`,
+          model: 'gemini-3.8-flash',
+          timestamp: Date.now() - 3600000 * 48,
+          conversationId: 'd64f4416-2892-4c0f-ad76-70f06d6818f6'
+        }
+      ],
+      '0ca70955-e9a6-4908-8b79-55a29f35ee67': [
+        {
+          id: 's5-1',
+          author: 'User',
+          content: 'Google Drive CLI 연동 확인 및 무료 이미지 생성(FLUX/Pollinations) 파이프라인 점검',
+          feedback: `### ☁️ Google Drive & 이미지 생성 환경 점검
+- \`gdrive readonly\` / \`gdrive mutate\` 네임스페이스 기반 파일 관리 및 무료 이미지 생성 스킬 점검 완료.`,
+          model: 'gemini-3.8-flash',
+          timestamp: Date.now() - 3600000 * 72,
+          conversationId: '0ca70955-e9a6-4908-8b79-55a29f35ee67'
+        }
+      ]
+    };
+
+    // DOM Elements
+    const feedContainer = document.getElementById('feedContainer');
+    const inputBox = document.getElementById('inputBox');
+    const sendBtn = document.getElementById('sendBtn');
+    const sessionList = document.getElementById('sessionList');
+    const currentSessionDisplay = document.getElementById('currentSessionDisplay');
+    const sidebar = document.getElementById('sidebar');
+    const modelDropdown = document.getElementById('modelDropdown');
+
+    function toggleSidebar(forceOpen) {
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        if (typeof forceOpen === 'boolean') {
+          sidebar.classList.toggle('open', forceOpen);
+        } else {
+          sidebar.classList.toggle('open');
+        }
+      } else {
+        if (typeof forceOpen === 'boolean') {
+          document.body.classList.toggle('sidebar-collapsed', !forceOpen);
+          sidebar.classList.toggle('collapsed', !forceOpen);
+        } else {
+          document.body.classList.toggle('sidebar-collapsed');
+          sidebar.classList.toggle('collapsed');
+        }
+        const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+        try {
+          localStorage.setItem('agy_sidebar_collapsed', isCollapsed ? '1' : '0');
+        } catch (e) {}
+      }
+    }
+
+    inputBox.addEventListener('input', () => {
+      inputBox.style.height = 'auto';
+      inputBox.style.height = Math.min(inputBox.scrollHeight, 140) + 'px';
+    });
+
+    inputBox.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendNote();
+      }
+    });
+
+    function updateModelUI(modelId) {
+      selectedModel = modelId;
+      localStorage.setItem('agy_model_choice_v5', modelId);
+      if (modelDropdown.value !== modelId) {
+        modelDropdown.value = modelId;
+      }
+      document.querySelectorAll('.pill-btn').forEach(btn => {
+        if (btn.getAttribute('data-model') === modelId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      refreshUsageDisplay();
+    }
+
+    function onDropdownModelChange(val) {
+      updateModelUI(val);
+    }
+
+    function quickSelectModel(val) {
+      updateModelUI(val);
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const h = String(d.getHours()).padStart(2, '0');
+      const m = String(d.getMinutes()).padStart(2, '0');
+      return `${h}:${m}`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Helper: Clean up internal ```github_commit blocks from answer so UI stays clean!
+    function cleanAnswerText(rawText) {
+      if (!rawText) return '';
+      return rawText.replace(/```github_commit[\s\S]*?```/g, '').trim();
+    }
+
+    // ================= Storage & Cloud Bridge Sync =================
+    function getStoredSessions() {
+      const raw = localStorage.getItem(SESSIONS_LIST_KEY);
+      if (raw) {
+        try { return JSON.parse(raw); } catch {}
+      }
+      localStorage.setItem(SESSIONS_LIST_KEY, JSON.stringify(DEFAULT_SESSIONS_LIST));
+      return DEFAULT_SESSIONS_LIST;
+    }
+
+    function saveStoredSessions(list) {
+      localStorage.setItem(SESSIONS_LIST_KEY, JSON.stringify(list));
+    }
+
+    function getAllSessionsData() {
+      const raw = localStorage.getItem(SESSIONS_DATA_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          for (const [k, v] of Object.entries(DEFAULT_SESSIONS_DATA)) {
+            if (!parsed[k] || parsed[k].length === 0) parsed[k] = v;
+          }
+          return parsed;
+        } catch {}
+      }
+      localStorage.setItem(SESSIONS_DATA_KEY, JSON.stringify(DEFAULT_SESSIONS_DATA));
+      return DEFAULT_SESSIONS_DATA;
+    }
+
+    function saveAllSessionsData(data) {
+      localStorage.setItem(SESSIONS_DATA_KEY, JSON.stringify(data));
+    }
+
+    function getSessionNotes(sessId) {
+      const data = getAllSessionsData();
+      return data[sessId] || [];
+    }
+
+    function addNoteToSession(sessId, note) {
+      const data = getAllSessionsData();
+      if (!data[sessId]) data[sessId] = [];
+      if (!data[sessId].some(n => n.id === note.id)) {
+        data[sessId].push(note);
+      }
+      saveAllSessionsData(data);
+
+      const list = getStoredSessions();
+      const target = list.find(s => s.conversationId === sessId);
+      if (target && target.title.startsWith('새 세션')) {
+        target.title = '📝 ' + note.content.slice(0, 20);
+        saveStoredSessions(list);
+        renderSessions();
+      }
+    }
+
+    async function syncFromCloudBridge(manual = false) {
+      try {
+        const res = await fetch(`/api/github/file?repo=${encodeURIComponent(REPO)}&path=${encodeURIComponent('.bridge/sessions.json')}&_t=${Date.now()}`);
+        if (res.ok) {
+          const fileObj = await res.json();
+          if (fileObj && fileObj.content) {
+            const cloudStore = JSON.parse(fileObj.content);
+            if (cloudStore.sessionsList && Array.isArray(cloudStore.sessionsList)) {
+              const localList = getStoredSessions();
+              let listChanged = false;
+              for (const cs of cloudStore.sessionsList) {
+                const existing = localList.find(x => x.conversationId === cs.conversationId);
+                if (!existing) {
+                  localList.push(cs);
+                  listChanged = true;
+                } else if (cs.title && !existing.title.startsWith('🔥') && cs.title.startsWith('🔥')) {
+                  existing.title = cs.title;
+                  listChanged = true;
+                }
+              }
+              if (listChanged) {
+                saveStoredSessions(localList);
+                renderSessions();
+              }
+            }
+
+            if (cloudStore.sessionsData) {
+              const localData = getAllSessionsData();
+              let notesChanged = false;
+              for (const [sessId, notesArr] of Object.entries(cloudStore.sessionsData)) {
+                if (!localData[sessId]) {
+                  localData[sessId] = notesArr;
+                  notesChanged = true;
+                } else {
+                  for (const item of notesArr) {
+                    if (!localData[sessId].some(x => x.id === item.id)) {
+                      localData[sessId].push(item);
+                      notesChanged = true;
+                    }
+                  }
+                }
+              }
+              if (notesChanged) {
+                saveAllSessionsData(localData);
+                const pendingCard = document.querySelector('.loading-box');
+                if (pendingCard) {
+                  const parentThread = pendingCard.closest('.thread');
+                  if (parentThread) parentThread.remove();
+                }
+                renderSessions();
+                renderFeed();
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Cloud bridge sync:', e);
+      }
+    }
+
+    function renderSessions() {
+      const list = getStoredSessions();
+      const curObj = list.find(s => s.conversationId === currentSessionId);
+      currentSessionDisplay.textContent = curObj ? curObj.title : currentSessionId.slice(0, 8);
+
+      sessionList.innerHTML = list.map(s => {
+        const isActive = s.conversationId === currentSessionId;
+        return `
+          <button class="session-item ${isActive ? 'active' : ''}" onclick="switchSession('${s.conversationId}')">
+            <span class="dot"></span>
+            <span class="session-title-text" title="${s.title}">${escapeHtml(s.title)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchSession(sessId) {
+      currentSessionId = sessId;
+      localStorage.setItem('agy_current_session_v5', sessId);
+      renderSessions();
+      renderFeed();
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('open');
+      }
+    }
+
+    function createNewSession() {
+      const newId = 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+      const list = getStoredSessions();
+      list.unshift({
+        conversationId: newId,
+        title: `새 세션 (${newId.slice(2, 6)})`,
+        timestamp: Date.now()
+      });
+      saveStoredSessions(list);
+      switchSession(newId);
+    }
+
+    function renderFeed() {
+      const notes = getSessionNotes(currentSessionId);
+
+      if (notes.length === 0) {
+        feedContainer.innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 4.5rem 1rem; font-size: 0.85rem;">
+            이 세션에 등록된 메모가 없습니다. 아래 입력창에서 바로 대화를 시작해 보세요.
+          </div>
+        `;
+        return;
+      }
+
+      feedContainer.innerHTML = notes.map((item) => {
+        const qText = item.content || item.question || '';
+        const rawA = item.feedback || item.answer || '';
+        const cleanedA = cleanAnswerText(rawA);
+        const aHtml = marked.parse(cleanedA);
+        const modelLabel = MODEL_LABELS[item.model] || item.model || '👑 Claude 3 Opus';
+
+        return `
+          <div class="thread" id="thread-${item.id}">
+            <!-- Question Box -->
+            <div class="box-q">
+              <div class="meta-q">
+                <span class="author">Q. ${escapeHtml(item.author || 'User')}</span>
+                <span>${formatTime(item.timestamp)}</span>
+              </div>
+              <div class="text-q">${escapeHtml(qText)}</div>
+            </div>
+
+            <!-- Answer Box (대댓글 형태) -->
+            <div class="box-a">
+              <div class="meta-a">
+                <span class="author">
+                  <span>📌 Note</span>
+                  <span class="badge-model-tag">${escapeHtml(modelLabel)}</span>
+                  <span class="badge-vm-tag">VM Sync</span>
+                </span>
+                <span>${formatTime(item.timestamp)}</span>
+              </div>
+              <div class="markdown-body">${aHtml}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    // Send Note
+    async function sendNote() {
+      if (isSubmitting) return;
+      const text = inputBox.value.trim();
+      if (!text) return;
+
+      isSubmitting = true;
+      sendBtn.disabled = true;
+
+      const reqId = 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      const modelLabel = MODEL_LABELS[selectedModel] || selectedModel;
+
+      const tempId = 'temp-' + Date.now();
+      const statusSpanId = 'status_' + reqId;
+      const tempHtml = `
+        <div class="thread" id="${tempId}">
+          <div class="box-q">
+            <div class="meta-q">
+              <span class="author">Q. User</span>
+              <span>방금</span>
+            </div>
+            <div class="text-q">${escapeHtml(text)}</div>
+          </div>
+          <div class="loading-box">
+            <div class="dot-pulse">
+              <span></span><span></span><span></span>
+            </div>
+            <span id="${statusSpanId}">Firebase-VM (agy-server)의 agy CLI로 입력 전달 중...</span>
+          </div>
+        </div>
+      `;
+      feedContainer.insertAdjacentHTML('beforeend', tempHtml);
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      inputBox.value = '';
+      inputBox.style.height = 'auto';
+
+      try {
+        // 1. Send the user's input to .bridge/queue.json so Firebase-VM (agy-server) executes it via agy CLI
+        const queuePayload = {
+          status: 'pending',
+          request: {
+            id: reqId,
+            author: 'User',
+            sessionId: currentSessionId,
+            model: selectedModel,
+            modelLabel: modelLabel,
+            content: text,
+            timestamp: Date.now()
+          }
+        };
+
+        const commitRes = await fetch('/api/github/commit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            repo: REPO,
+            path: '.bridge/queue.json',
+            content: JSON.stringify(queuePayload, null, 2),
+            message: `feat(bridge): web input ${reqId} -> Firebase-VM agy`
+          })
+        });
+
+        if (!commitRes.ok) {
+          throw new Error(`Firebase-VM 큐 전송 실패 (${commitRes.status})`);
+        }
+
+        const statusEl = document.getElementById(statusSpanId);
+        if (statusEl) {
+          statusEl.textContent = `Firebase-VM (agy-server) 대기열 등록 완료 — agy CLI 호출 중...`;
+        }
+
+        // 2. Poll .bridge/queue.json until Firebase-VM (agy-server) writes the completed response
+        // Allow up to 15 minutes (900 seconds) for real coding agent tasks (tool execution, file changes, git commits)
+        const startTime = Date.now();
+        let resolvedNote = null;
+
+        while (Date.now() - startTime < 900000) {
+          await new Promise(r => setTimeout(r, 1500));
+          const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
+
+          try {
+            const qRes = await fetch(`/api/github/file?repo=${encodeURIComponent(REPO)}&path=${encodeURIComponent('.bridge/queue.json')}&_t=${Date.now()}`);
+            if (qRes.ok) {
+              const qFile = await qRes.json();
+              if (qFile && qFile.content) {
+                const qData = JSON.parse(qFile.content);
+                const el = document.getElementById(statusSpanId);
+
+                if (qData.status === 'processing') {
+                  if (el) {
+                    if (elapsedSec < 30) {
+                      el.textContent = `⚡ Firebase-VM (agy-server)에서 agy CLI 작업 실행 중... (${elapsedSec}초)`;
+                    } else if (elapsedSec < 90) {
+                      el.textContent = `🛠 도구 실행 및 코드 분석/수정 중... (${elapsedSec}초)`;
+                    } else if (elapsedSec < 180) {
+                      el.textContent = `📝 코드 작성 및 테스트/검증 중... (${elapsedSec}초)`;
+                    } else {
+                      el.textContent = `⏳ 대규모 작업 진행 중 (Git/배포/실행 대기)... (${elapsedSec}초)`;
+                    }
+                  }
+                } else if (qData.status === 'completed' && (qData.lastProcessedId === reqId || (qData.latestNote && qData.latestNote.id === reqId))) {
+                  resolvedNote = qData.latestNote;
+                  break;
+                } else {
+                  if (el) {
+                    if (elapsedSec < 30) {
+                      el.textContent = `Firebase-VM (agy-server) 대기열 처리 중... (${elapsedSec}초)`;
+                    } else {
+                      el.textContent = `⚡ Firebase-VM에서 작업 처리 중... (${elapsedSec}초)`;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (pollErr) {
+            // ignore transient network errors during poll
+          }
+        }
+
+        if (!resolvedNote) {
+          const el = document.getElementById(statusSpanId);
+          if (el) {
+            el.innerHTML = `⚠️ 응답 생성 시간이 오래 걸리고 있습니다. 백그라운드에서 작업이 계속 진행 중일 수 있습니다. 상단 <strong>[VM 동기화]</strong> 버튼을 누르거나 잠시 후 새로고침해 주세요.`;
+          }
+          return;
+        }
+
+        // Increment usage for the specific model tier!
+        incrementModelUsage(selectedModel);
+        addNoteToSession(currentSessionId, resolvedNote);
+
+        const tempEl = document.getElementById(tempId);
+        if (tempEl) tempEl.remove();
+        renderFeed();
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      } catch (err) {
+        console.error('Send error:', err);
+        const el = document.getElementById(statusSpanId);
+        if (el) {
+          el.textContent = `⚠️ 오류: ${err.message} (잠시 후 상단 [VM 동기화]를 눌러보세요)`;
+        } else {
+          alert('오류: ' + err.message);
+        }
+      } finally {
+        isSubmitting = false;
+        sendBtn.disabled = false;
+        inputBox.focus();
+      }
+    }
+
+    // ================= Per-Model Quota & Remaining Usage System =================
+    const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
+
+    function getSundayMidnight(timestamp) {
+      const d = new Date(timestamp);
+      const day = d.getDay();
+      const diff = d.getDate() - day;
+      const sunday = new Date(d.setDate(diff));
+      sunday.setHours(0, 0, 0, 0);
+      return sunday.getTime();
+    }
+
+    function getQuotaStore() {
+      const raw = localStorage.getItem(QUOTA_STORE_KEY);
+      const now = Date.now();
+      let store = raw ? JSON.parse(raw) : null;
+
+      if (!store || !store.tiers || !store.tiers.argon) {
+        store = {
+          windowStart: now,
+          weekStart: getSundayMidnight(now),
+          tiers: {
+            opus: { used5h: 0, usedWeekly: 5 },
+            argon: { used5h: 0, usedWeekly: 8 },
+            sonnet: { used5h: 12, usedWeekly: 180 },
+            flash: { used5h: 8, usedWeekly: 120 },
+            oss: { used5h: 2, usedWeekly: 40 }
+          }
+        };
+        saveQuotaStore(store);
+        return store;
+      }
+
+      // Check 5-hour window reset
+      if (now - store.windowStart >= FIVE_HOURS_MS) {
+        store.windowStart = now;
+        for (const k of Object.keys(store.tiers)) {
+          store.tiers[k].used5h = 0;
+        }
+      }
+
+      // Check weekly reset
+      const curWeek = getSundayMidnight(now);
+      if (store.weekStart !== curWeek) {
+        store.weekStart = curWeek;
+        for (const k of Object.keys(store.tiers)) {
+          store.tiers[k].usedWeekly = 0;
+        }
+      }
+
+      saveQuotaStore(store);
+      return store;
+    }
+
+    function saveQuotaStore(store) {
+      localStorage.setItem(QUOTA_STORE_KEY, JSON.stringify(store));
+    }
+
+    function incrementModelUsage(modelId) {
+      const store = getQuotaStore();
+      const tierKey = getModelTierKey(modelId);
+      if (!store.tiers[tierKey]) {
+        store.tiers[tierKey] = { used5h: 0, usedWeekly: 0 };
+      }
+      store.tiers[tierKey].used5h += 1;
+      store.tiers[tierKey].usedWeekly += 1;
+      saveQuotaStore(store);
+      refreshUsageDisplay();
+    }
+
+    function resetAllQuotas() {
+      const now = Date.now();
+      const store = {
+        windowStart: now,
+        weekStart: getSundayMidnight(now),
+        tiers: {
+          opus: { used5h: 0, usedWeekly: 0 },
+          argon: { used5h: 0, usedWeekly: 0 },
+          sonnet: { used5h: 0, usedWeekly: 0 },
+          flash: { used5h: 0, usedWeekly: 0 },
+          oss: { used5h: 0, usedWeekly: 0 }
+        }
+      };
+      saveQuotaStore(store);
+      refreshUsageDisplay();
+    }
+
+    function refreshUsageDisplay() {
+      const store = getQuotaStore();
+      const activeTierKey = getModelTierKey(selectedModel);
+      const activeCfg = TIER_CONFIG[activeTierKey] || TIER_CONFIG.flash;
+      const activeUsage = store.tiers[activeTierKey] || { used5h: 0, usedWeekly: 0 };
+
+      // 1. Update Active Model Highlight Banner
+      const rem5h = Math.max(0, activeCfg.max5h - activeUsage.used5h);
+      const pct5h = Math.max(0, Math.round((rem5h / activeCfg.max5h) * 100));
+      const remWeekly = Math.max(0, activeCfg.maxWeekly - activeUsage.usedWeekly);
+
+      document.getElementById('aqModelName').textContent = MODEL_LABELS[selectedModel] || activeCfg.name;
+      const aqRemainEl = document.getElementById('aqRemain5h');
+      const aqBar = document.getElementById('aqBar5h');
+
+      if (activeCfg.isExhausted || rem5h === 0) {
+        aqRemainEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0회 남음 (한도 소진됨 ⚠️)</span>`;
+        aqBar.className = 'progress-fill fill-danger';
+        aqBar.style.width = '100%';
+        document.getElementById('aqUsed5h').textContent = `5시간: ${activeCfg.max5h} / ${activeCfg.max5h}회 사용 (소진)`;
+      } else {
+        aqRemainEl.textContent = `${rem5h}회 남음 (${pct5h}%)`;
+        aqBar.className = `progress-fill ${activeCfg.barClass}`;
+        aqBar.style.width = `${pct5h}%`;
+        document.getElementById('aqUsed5h').textContent = `5시간: ${activeUsage.used5h} / ${activeCfg.max5h}회 사용`;
+      }
+      document.getElementById('aqRemainWeekly').textContent = `주간: ${remWeekly.toLocaleString()} / ${activeCfg.maxWeekly.toLocaleString()} 남음`;
+
+      // 2. Update All Tiers Independent Bars
+      for (const [tKey, cfg] of Object.entries(TIER_CONFIG)) {
+        const u = store.tiers[tKey] || { used5h: 0, usedWeekly: 0 };
+        const r5 = Math.max(0, cfg.max5h - u.used5h);
+        const p5 = Math.max(0, Math.round((r5 / cfg.max5h) * 100));
+        const textEl = document.getElementById(`tierText-${tKey}`);
+        const barEl = document.getElementById(`tierBar-${tKey}`);
+        if (textEl) {
+          if (cfg.isExhausted || r5 === 0) {
+            textEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0 / ${cfg.max5h} (한도 소진됨 ⚠️)</span>`;
+          } else {
+            textEl.textContent = `${r5} / ${cfg.max5h} 남음 (${p5}%)`;
+          }
+        }
+        if (barEl) {
+          barEl.style.width = `${cfg.isExhausted || r5 === 0 ? 100 : p5}%`;
+          if (cfg.isExhausted || r5 === 0) {
+            barEl.className = 'progress-fill fill-danger';
+          }
+        }
+      }
+
+      // 3. Update 5h Reset Countdown
+      const now = Date.now();
+      const remainMs = Math.max(0, FIVE_HOURS_MS - (now - store.windowStart));
+      const rH = String(Math.floor(remainMs / (1000 * 60 * 60))).padStart(2, '0');
+      const rM = String(Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+      const rS = String(Math.floor((remainMs % (1000 * 60)) / 1000)).padStart(2, '0');
+      document.getElementById('timer5h').textContent = `리셋: ${rH}:${rM}:${rS}`;
+    }
+
+    setInterval(refreshUsageDisplay, 1000);
+
+    // Bootstrap
+    try {
+      if (window.innerWidth > 768 && localStorage.getItem('agy_sidebar_collapsed') === '1') {
+        document.body.classList.add('sidebar-collapsed');
+        if (sidebar) sidebar.classList.add('collapsed');
+      }
+    } catch (e) {}
+
+    updateModelUI(selectedModel);
+    renderSessions();
+    renderFeed();
+    refreshUsageDisplay();
+    syncFromCloudBridge(false);
+    // Background auto-sync every 4 seconds to catch any completed responses automatically!
+    setInterval(() => syncFromCloudBridge(false), 4000);
+  </script>
+</body>
+</html>
