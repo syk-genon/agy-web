@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_raw_models_1794356996872",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "터미널에서 python3를 실행해서 /home/syk4441/.gemini/antigravity-cli/antigravity-oauth-token 안의 access_token으로 https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels API를 직접 호출하고, 반환되는 전체 모델별 쿼터 JSON 응답 원본(특히 gemini-4-argon, claude, gemini-3.8-flash의 quotaInfo / weekly / window / resetTime 등 모든 필드)을 있는 그대로 출력해줘.",
     "timestamp": 1794356996872
-  }
+  },
+  "receivedAt": 1794356998800
 }
