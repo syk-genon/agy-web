@@ -3,6 +3,8 @@ import gzip
 import hashlib
 import json
 import os
+import shutil
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -14,6 +16,20 @@ PROJECT_ID = "agy-web-9f33e"
 SITE_ID = "sykagy"
 
 
+def should_skip_deploy() -> bool:
+    try:
+        last_msg = subprocess.check_output(
+            ["git", "log", "-1", "--pretty=%B"], cwd=REPO_ROOT, text=True, timeout=5
+        ).strip()
+        # Skip automatic deploy for internal bridge queue/session syncing commits
+        if last_msg.startswith("chore(firebase-vm)") or last_msg.startswith("feat(bridge)"):
+            print(f"⏩ [Deploy Skip]: Internal bridge commit ('{last_msg[:40]}...'). Skipping deploy.")
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def get_access_token() -> str:
     token_path = Path("/home/syk4441/.gemini/antigravity-cli/antigravity-oauth-token")
     if token_path.exists():
@@ -23,15 +39,62 @@ def get_access_token() -> str:
         except Exception:
             pass
     try:
-        import subprocess
-        out = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True)
+        out = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True, timeout=10)
         return out.strip()
     except Exception:
         pass
     return None
 
 
+def ensure_static_files():
+    if not STATIC_DIR.exists():
+        STATIC_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Use index.html or notes.html as source
+    source_file = None
+    for cand in ["notes.html", "index.html", "comments.html"]:
+        p = STATIC_DIR / cand
+        if p.exists() and p.stat().st_size > 1000:
+            source_file = p
+            break
+
+    if source_file:
+        for target in ["index.html", "notes.html", "comments.html"]:
+            dest = STATIC_DIR / target
+            if not dest.exists() or dest.stat().st_size == 0 or dest.stat().st_size != source_file.stat().st_size:
+                shutil.copy(source_file, dest)
+
+    # Always ensure 404.html redirect page exists
+    f404 = STATIC_DIR / "404.html"
+    if not f404.exists():
+        f404.write_text("""<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0; url=/">
+  <title>BlackNote Redirecting...</title>
+  <script>window.location.replace('/');</script>
+</head>
+<body style="background:#08090b; color:#888; font-family:sans-serif; text-align:center; padding-top:20vh;">
+  <p>BlackNote로 이동 중입니다...</p>
+</body>
+</html>
+""", "utf-8")
+
+
 def deploy_hosting():
+    if should_skip_deploy():
+        return
+
+    # Pull latest from origin if possible
+    try:
+        subprocess.run(["git", "pull", "--rebase"], cwd=REPO_ROOT, timeout=10, capture_output=True)
+    except Exception:
+        pass
+
+    # Ensure notes.html, comments.html, 404.html always exist so users NEVER get 404!
+    ensure_static_files()
+
     token = get_access_token()
     if not token:
         print("❌ [Deploy Error]: Could not find a valid OAuth token.")
@@ -51,10 +114,7 @@ def deploy_hosting():
             "rewrites": [
                 {
                     "glob": "/api/**",
-                    "run": {
-                        "serviceId": "api",
-                        "region": "us-central1",
-                    },
+                    "function": "api",
                 }
             ]
         }
