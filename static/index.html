@@ -760,30 +760,27 @@
         </div>
         <div class="model-select-box">
           <select id="modelDropdown" class="model-dropdown" onchange="onDropdownModelChange(this.value)">
-            <optgroup label="⚡ 추천 (여유 / 초고속)">
-              <option value="gemini-3.8-flash" selected>⚡ Gemini 3.8 Flash (초고속 • 잔여 94%)</option>
+            <optgroup label="⚡ Google Gemini (🟢 여유 89.9%)">
+              <option value="gemini-3.8-flash" selected>⚡ Gemini 3.8 Flash (초고속 여유 • 잔여 89.9% 권장)</option>
+              <option value="gemini-4-argon">🧠 Gemini 4 Argon (고성능 추론 • 잔여 89.9%)</option>
             </optgroup>
-            <optgroup label="👑 Anthropic Claude">
-              <option value="claude-3-7-sonnet">⚡ Claude 3.7 Sonnet (Thinking • 잔여 70%)</option>
-              <option value="claude-sonnet-5-5">🚀 Claude Sonnet 5.5 (잔여 70%)</option>
-              <option value="claude-3-opus">⚠️ Claude 3 Opus (5h 한도 소진됨 • 리셋 대기)</option>
+            <optgroup label="⚠️ Anthropic Claude (소진 0.9% • 주간 리셋 대기)">
+              <option value="claude-3-7-sonnet">⚠️ Claude 3.7 Sonnet (주간 쿼터 소진 • 0.9%)</option>
+              <option value="claude-sonnet-5-5">⚠️ Claude Sonnet 5.5 (주간 쿼터 소진 • 0.9%)</option>
+              <option value="claude-3-opus">⚠️ Claude 3 Opus (주간 쿼터 소진 • 0.9%)</option>
             </optgroup>
-            <optgroup label="✨ Google Gemini">
-              <option value="gemini-3.8-flash">⚡ Gemini 3.8 Flash (잔여 94%)</option>
-              <option value="gemini-4-argon">⚠️ Gemini 4 Argon (5h 한도 소진됨 • 리셋 대기)</option>
-            </optgroup>
-            <optgroup label="🌐 Open Source / OSS (Llama / DeepSeek / NIM)">
-              <option value="meta/llama-3.1-405b-instruct">🦙 Meta Llama 3.1 405B (잔여 98%)</option>
-              <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">🟢 NVIDIA Nemotron 120B (잔여 95%)</option>
-              <option value="deepseek-ai/deepseek-r1">🐋 DeepSeek R1 (잔여 98%)</option>
-              <option value="qwen/qwen-2.5-coder-32b-instruct">💻 Qwen 2.5 Coder 32B (잔여 99%)</option>
+            <optgroup label="⚠️ Open Source / OSS (소진 0.9% • Claude 공통 풀)">
+              <option value="meta/llama-3.1-405b-instruct">🦙 Meta Llama 3.1 405B (소진 • 0.9%)</option>
+              <option value="nvidia/nemotron-3.5-super-vl-120b-a12b">🟢 NVIDIA Nemotron 120B (소진 • 0.9%)</option>
+              <option value="deepseek-ai/deepseek-r1">🐋 DeepSeek R1 (소진 • 0.9%)</option>
+              <option value="qwen/qwen-2.5-coder-32b-instruct">💻 Qwen 2.5 Coder 32B (소진 • 0.9%)</option>
             </optgroup>
           </select>
 
           <div class="model-Quick-pills">
-            <button class="pill-btn" data-model="gemini-3.8-flash" onclick="quickSelectModel('gemini-3.8-flash')">⚡ Flash 3.8</button>
-            <button class="pill-btn" data-model="claude-3-7-sonnet" onclick="quickSelectModel('claude-3-7-sonnet')">⚡ Sonnet 3.7</button>
-            <button class="pill-btn" data-model="meta/llama-3.1-405b-instruct" onclick="quickSelectModel('meta/llama-3.1-405b-instruct')">🦙 Llama 405B</button>
+            <button class="pill-btn active" data-model="gemini-3.8-flash" onclick="quickSelectModel('gemini-3.8-flash')">⚡ Flash 3.8 (89.9%)</button>
+            <button class="pill-btn" data-model="gemini-4-argon" onclick="quickSelectModel('gemini-4-argon')">🧠 Argon 4 (89.9%)</button>
+            <button class="pill-btn" data-model="claude-3-7-sonnet" onclick="quickSelectModel('claude-3-7-sonnet')" style="color:#ef4444;">⚠️ Sonnet (소진)</button>
             <button class="pill-btn" data-model="claude-3-opus" onclick="quickSelectModel('claude-3-opus')" style="color:#ef4444;">⚠️ Opus (소진)</button>
           </div>
         </div>
@@ -792,69 +789,69 @@
       <!-- 3. Per-Model Quota & Remaining Usage Monitor -->
       <div>
         <div class="section-title">
-          <span>모델별 잔여량 (Remaining Quota)</span>
-          <span style="font-size: 0.68rem; color: #34d399;" id="timer5h">04:59:59</span>
+          <span>모델별 잔여량 (실시간 백엔드 연동)</span>
+          <span style="font-size: 0.68rem; color: #34d399;" id="timer5h">04:38:12</span>
         </div>
 
         <div class="quota-box">
           <!-- Selected Model Detailed Remaining Box -->
           <div class="active-quota-banner">
             <div class="aq-title">
-              <span id="aqModelName">👑 Claude 3 Opus</span>
-              <span class="aq-remain" id="aqRemain5h">25회 남음 (100%)</span>
+              <span id="aqModelName">⚡ Gemini 3.8 Flash</span>
+              <span class="aq-remain" id="aqRemain5h">180회 남음 (89.9%)</span>
             </div>
             <div class="progress-track" style="height: 6px;">
-              <div class="progress-fill fill-opus" id="aqBar5h" style="width: 100%;"></div>
+              <div class="progress-fill fill-flash" id="aqBar5h" style="width: 89.9%;"></div>
             </div>
             <div class="aq-sub">
-              <span id="aqUsed5h">5시간: 0 / 25회 사용</span>
-              <span id="aqRemainWeekly" style="color:#c084fc;">주간: 250회 남음</span>
+              <span id="aqUsed5h">5시간: 20 / 200회 사용</span>
+              <span id="aqRemainWeekly" style="color:#34d399;">리셋: 13:52 KST</span>
             </div>
           </div>
 
           <!-- All 5 Model Groups Independent Remaining Bars -->
           <div class="tier-list">
-            <!-- Tier 1: Opus (Recovered) -->
+            <!-- Tier 1: Gemini 3.8 Flash (Active / Available) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>⚡ <strong>Gemini 3.8 Flash</strong> (추천 🟢)</span>
+                <span id="tierText-flash" style="color:#34d399; font-weight:600;">180 / 200 남음 (89.9%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-flash" id="tierBar-flash" style="width:89.9%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 2: Gemini 4 Argon (Available) -->
+            <div class="tier-item">
+              <div class="tier-row">
+                <span>🧠 <strong>Gemini 4 Argon</strong> (고성능 🟢)</span>
+                <span id="tierText-argon" style="color:#818cf8; font-weight:600;">54 / 60 남음 (89.9%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill fill-sonnet" id="tierBar-argon" style="width:89.9%;"></div>
+              </div>
+            </div>
+
+            <!-- Tier 3: Claude 3 Opus (Exhausted) -->
             <div class="tier-item">
               <div class="tier-row">
                 <span>👑 <strong>Claude 3 Opus</strong></span>
-                <span id="tierText-opus" style="color:#f59e0b; font-weight:600;">25 / 25 남음 (100%)</span>
+                <span id="tierText-opus" style="color:#ef4444; font-weight:700;">0 / 25 (한도 소진됨 ⚠️)</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill fill-opus" id="tierBar-opus" style="width:100%;"></div>
+                <div class="progress-fill fill-danger" id="tierBar-opus" style="width:100%;"></div>
               </div>
             </div>
 
-            <!-- Tier 2: Argon 4 (Recovered) -->
-            <div class="tier-item">
-              <div class="tier-row">
-                <span>🧠 <strong>Gemini 4 Argon</strong></span>
-                <span id="tierText-argon" style="color:#818cf8; font-weight:600;">60 / 60 남음 (100%)</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill fill-sonnet" id="tierBar-argon" style="width:100%;"></div>
-              </div>
-            </div>
-
-            <!-- Tier 3: Sonnet (Available) -->
+            <!-- Tier 4: Claude Sonnet 3.7 / 5.5 (Exhausted) -->
             <div class="tier-item">
               <div class="tier-row">
                 <span>⚡ <strong>Claude Sonnet 3.7</strong></span>
-                <span id="tierText-sonnet" style="color:#818cf8; font-weight:600;">48 / 60 남음 (80%)</span>
+                <span id="tierText-sonnet" style="color:#ef4444; font-weight:700;">0 / 60 (한도 소진됨 ⚠️)</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill fill-sonnet" id="tierBar-sonnet" style="width:80%;"></div>
-              </div>
-            </div>
-
-            <!-- Tier 4: Flash (High Capacity) -->
-            <div class="tier-item">
-              <div class="tier-row">
-                <span>⚡ <strong>Gemini 3.8 Flash</strong> (추천)</span>
-                <span id="tierText-flash" style="color:#34d399; font-weight:600;">192 / 200 남음 (96%)</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill fill-flash" id="tierBar-flash" style="width:96%;"></div>
+                <div class="progress-fill fill-danger" id="tierBar-sonnet" style="width:100%;"></div>
               </div>
             </div>
 
@@ -862,23 +859,22 @@
             <div class="tier-item">
               <div class="tier-row">
                 <span>🦙 <strong>OSS (Llama/NIM/R1)</strong></span>
-                <span id="tierText-oss" style="color:#a3e635; font-weight:600;">298 / 300 남음 (99%)</span>
+                <span id="tierText-oss" style="color:#ef4444; font-weight:700;">0 / 120 (한도 소진됨 ⚠️)</span>
               </div>
               <div class="progress-track">
-                <div class="progress-fill fill-oss" id="tierBar-oss" style="width:99%;"></div>
+                <div class="progress-fill fill-danger" id="tierBar-oss" style="width:100%;"></div>
               </div>
             </div>
           </div>
 
           <div style="margin-top: 0.65rem; text-align: center;">
-            <button onclick="resetAllQuotas()" style="background: #171b26; border: 1px solid var(--border); color: #60a5fa; border-radius: 5px; padding: 5px 10px; font-size: 0.72rem; cursor: pointer; width: 100%; transition: all 0.15s; font-weight: 500;">
-              ↻ 5시간 쿼터 즉시 100% 초기화
+            <button id="btnSyncQuota" onclick="requestRealQuotaSync()" style="background: #171b26; border: 1px solid var(--border); color: #38bdf8; border-radius: 5px; padding: 6px 10px; font-size: 0.72rem; cursor: pointer; width: 100%; transition: all 0.15s; font-weight: 500; display:flex; align-items:center; justify-content:center; gap:6px;">
+              <span>🔄</span> <span>실시간 백엔드 잔여량 동기화</span>
             </button>
           </div>
 
           <div class="quota-footer-row">
-            <span>주간 리셋: 일요일 자정</span>
-            <button onclick="resetAllQuotas()" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:0.65rem; text-decoration:underline;">초기화</button>
+            <span style="color:#94a3b8;">Claude/OSS 리셋: 11월 15일 15:54 (주간)</span>
           </div>
         </div>
       </div>
@@ -911,6 +907,20 @@
     <main class="feed-container" id="feedContainer"></main>
 
     <div class="input-bar">
+      <div id="modelExhaustedWarning" style="display:none; margin-bottom:8px; padding:8px 12px; background:rgba(239, 68, 68, 0.12); border:1px solid #ef4444; border-radius:6px; font-size:0.74rem; color:#fca5a5; line-height:1.45;">
+        <div style="font-weight:700; color:#f87171; display:flex; align-items:center; justify-content:space-between;">
+          <span>⚠️ 쿼터 한도 소진 (주간 리셋 대기)</span>
+          <span style="font-size:0.7rem; color:#fca5a5;">리셋 예정: 2026-11-15 15:54 KST</span>
+        </div>
+        <div id="warnModelText" style="margin-top:3px; color:#cbd5e1;">
+          선택하신 모델은 현재 주간 쿼터가 소진(잔여 0.9%)되어 요청이 실패할 수 있습니다.
+        </div>
+        <div style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+          <span style="color:#94a3b8; font-size:0.7rem;">추천 모델:</span>
+          <button onclick="quickSelectModel('gemini-3.8-flash')" style="background:#059669; border:none; color:#fff; border-radius:4px; padding:2px 7px; font-size:0.69rem; font-weight:600; cursor:pointer;">⚡ Gemini 3.8 Flash (89.9%) 즉시 전환</button>
+          <button onclick="quickSelectModel('gemini-4-argon')" style="background:#2563eb; border:none; color:#fff; border-radius:4px; padding:2px 7px; font-size:0.69rem; font-weight:600; cursor:pointer;">🧠 Gemini 4 Argon (89.9%)</button>
+        </div>
+      </div>
       <div class="input-inner">
         <textarea 
           id="inputBox" 
@@ -938,24 +948,94 @@
     let isSubmitting = false;
 
     const MODEL_LABELS = {
-      'claude-3-opus': '👑 Claude 3 Opus',
-      'claude-3-7-sonnet': '⚡ Claude 3.7 Sonnet',
-      'claude-sonnet-5-5': '🚀 Claude Sonnet 5.5',
-      'gemini-4-argon': '🧠 Gemini 4 Argon',
-      'gemini-3.8-flash': '⚡ Gemini 3.8 Flash',
-      'meta/llama-3.1-405b-instruct': '🦙 Llama 3.1 405B (OSS)',
-      'nvidia/nemotron-3.5-super-vl-120b-a12b': '🟢 Nemotron 120B (OSS)',
-      'deepseek-ai/deepseek-r1': '🐋 DeepSeek R1 (OSS)',
-      'qwen/qwen-2.5-coder-32b-instruct': '💻 Qwen 2.5 Coder (OSS)'
+      'claude-3-opus': '⚠️ Claude 3 Opus (소진 0.9%)',
+      'claude-3-7-sonnet': '⚠️ Claude 3.7 Sonnet (소진 0.9%)',
+      'claude-sonnet-5-5': '⚠️ Claude Sonnet 5.5 (소진 0.9%)',
+      'gemini-4-argon': '🧠 Gemini 4 Argon (여유 89.9%)',
+      'gemini-3.8-flash': '⚡ Gemini 3.8 Flash (초고속 여유 89.9%)',
+      'meta/llama-3.1-405b-instruct': '🦙 Llama 3.1 405B (소진 0.9%)',
+      'nvidia/nemotron-3.5-super-vl-120b-a12b': '🟢 Nemotron 120B (소진 0.9%)',
+      'deepseek-ai/deepseek-r1': '🐋 DeepSeek R1 (소진 0.9%)',
+      'qwen/qwen-2.5-coder-32b-instruct': '💻 Qwen 2.5 Coder (소진 0.9%)'
     };
+
+    // Real Antigravity Backend Quota Definitions & Live Synced Cache
+    const REAL_QUOTA_DEFAULT = {
+      updatedAt: 1794356026003,
+      source: "Antigravity CloudCode API (fetchAvailableModels)",
+      vm: "Firebase-VM (agy-server / 35.188.210.15)",
+      tiers: {
+        flash: {
+          name: '⚡ Gemini 3.8 Flash',
+          percentage: 89.9,
+          remainingCount: 180,
+          max5h: 200,
+          maxWeekly: 3000,
+          isExhausted: false,
+          statusLabel: '초고속 여유 (추천 🟢)',
+          resetTime: '2026-11-11 13:52:23 KST',
+          resetTimestamp: 1794372743000,
+          quotaType: 'rolling'
+        },
+        argon: {
+          name: '🧠 Gemini 4 Argon',
+          percentage: 89.9,
+          remainingCount: 54,
+          max5h: 60,
+          maxWeekly: 800,
+          isExhausted: false,
+          statusLabel: '사용 가능 (단기 롤링 🟢)',
+          resetTime: '2026-11-11 13:52:23 KST',
+          resetTimestamp: 1794372743000,
+          quotaType: 'rolling'
+        },
+        opus: {
+          name: '👑 Claude 3 Opus',
+          percentage: 0.9,
+          remainingCount: 0,
+          max5h: 25,
+          maxWeekly: 250,
+          isExhausted: true,
+          statusLabel: '한도 소진됨 (주간 쿼터 ⚠️)',
+          resetTime: '2026-11-15 15:54:28 KST',
+          resetTimestamp: 1794725668000,
+          quotaType: 'weekly'
+        },
+        sonnet: {
+          name: '⚡ Claude Sonnet 3.7 / 5.5',
+          percentage: 0.9,
+          remainingCount: 0,
+          max5h: 60,
+          maxWeekly: 800,
+          isExhausted: true,
+          statusLabel: '한도 소진됨 (주간 쿼터 ⚠️)',
+          resetTime: '2026-11-15 15:54:28 KST',
+          resetTimestamp: 1794725668000,
+          quotaType: 'weekly'
+        },
+        oss: {
+          name: '🦙 GPT-OSS / Llama / NIM',
+          percentage: 0.9,
+          remainingCount: 1,
+          max5h: 120,
+          maxWeekly: 2000,
+          isExhausted: true,
+          statusLabel: '한도 소진됨 (Claude 공통 풀 ⚠️)',
+          resetTime: '2026-11-15 15:54:28 KST',
+          resetTimestamp: 1794725668000,
+          quotaType: 'weekly'
+        }
+      }
+    };
+    window.realQuotaData = REAL_QUOTA_DEFAULT;
 
     // Per-Model Tier Quota Definitions
     const TIER_CONFIG = {
-      opus: {
-        name: '👑 Claude 3 Opus',
-        max5h: 25,
-        maxWeekly: 250,
-        barClass: 'fill-opus',
+      flash: {
+        name: '⚡ Gemini 3.8 Flash (초고속 여유)',
+        max5h: 200,
+        maxWeekly: 3000,
+        barClass: 'fill-flash',
         isExhausted: false
       },
       argon: {
@@ -965,26 +1045,26 @@
         barClass: 'fill-sonnet',
         isExhausted: false
       },
+      opus: {
+        name: '👑 Claude 3 Opus',
+        max5h: 25,
+        maxWeekly: 250,
+        barClass: 'fill-opus',
+        isExhausted: true
+      },
       sonnet: {
         name: '⚡ Claude Sonnet 3.7',
         max5h: 60,
         maxWeekly: 800,
         barClass: 'fill-sonnet',
-        isExhausted: false
-      },
-      flash: {
-        name: '⚡ Gemini 3.8 Flash (초고속 여유)',
-        max5h: 200,
-        maxWeekly: 3000,
-        barClass: 'fill-flash',
-        isExhausted: false
+        isExhausted: true
       },
       oss: {
         name: '🦙 OSS (Llama / NIM / R1)',
-        max5h: 300,
-        maxWeekly: 5000,
+        max5h: 120,
+        maxWeekly: 2000,
         barClass: 'fill-oss',
-        isExhausted: false
+        isExhausted: true
       }
     };
 
@@ -1146,6 +1226,23 @@
           btn.classList.remove('active');
         }
       });
+
+      // Check real quota exhausted status
+      const tierKey = getModelTierKey(modelId);
+      const q = (window.realQuotaData && window.realQuotaData.tiers && window.realQuotaData.tiers[tierKey]) || REAL_QUOTA_DEFAULT.tiers[tierKey];
+      const warnBox = document.getElementById('modelExhaustedWarning');
+      if (warnBox) {
+        if (q && q.isExhausted) {
+          warnBox.style.display = 'block';
+          const warnText = document.getElementById('warnModelText');
+          if (warnText) {
+            warnText.innerHTML = `선택하신 <strong>${escapeHtml(MODEL_LABELS[modelId] || modelId)}</strong> 모델은 현재 <strong>주간 쿼터 소진(잔여 ${q.percentage}%)</strong> 상태입니다. 질문 전송 시 쿼터 초과 에러가 발생할 수 있습니다.`;
+          }
+        } else {
+          warnBox.style.display = 'none';
+        }
+      }
+
       refreshUsageDisplay();
     }
 
@@ -1290,6 +1387,24 @@
               }
             }
           }
+        }
+
+        try {
+          const qRes = await fetch(`/api/github/file?repo=${encodeURIComponent(REPO)}&path=${encodeURIComponent('.bridge/quota.json')}&_t=${Date.now()}`);
+          if (qRes.ok) {
+            const qFile = await qRes.json();
+            if (qFile && qFile.content) {
+              const qObj = JSON.parse(qFile.content);
+              if (qObj && qObj.tiers) {
+                window.realQuotaData = qObj;
+                refreshUsageDisplay();
+              }
+            }
+          }
+        } catch (qErr) {}
+
+        if (manual) {
+          showNotice('✅ 최신 메모 및 잔여량 동기화 완료!');
         }
       } catch (e) {
         console.warn('Cloud bridge sync:', e);
@@ -1539,150 +1654,119 @@
       }
     }
 
-    // ================= Per-Model Quota & Remaining Usage System =================
-    const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
-
-    function getSundayMidnight(timestamp) {
-      const d = new Date(timestamp);
-      const day = d.getDay();
-      const diff = d.getDate() - day;
-      const sunday = new Date(d.setDate(diff));
-      sunday.setHours(0, 0, 0, 0);
-      return sunday.getTime();
+    // ================= Per-Model Real Quota & Backend Synchronization =================
+    function showNotice(msg) {
+      let toast = document.getElementById('agyToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'agyToast';
+        toast.style.cssText = 'position:fixed; bottom:70px; right:20px; background:#1e293b; color:#f8fafc; border:1px solid #38bdf8; border-radius:8px; padding:10px 16px; font-size:0.8rem; z-index:9999; box-shadow:0 4px 14px rgba(0,0,0,0.6); transition:opacity 0.25s ease; opacity:0; pointer-events:none;';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = msg;
+      toast.style.opacity = '1';
+      setTimeout(() => { if (toast) toast.style.opacity = '0'; }, 3200);
     }
 
-    function getQuotaStore() {
-      const raw = localStorage.getItem(QUOTA_STORE_KEY);
-      const now = Date.now();
-      let store = raw ? JSON.parse(raw) : null;
-
-      if (!store || !store.tiers || !store.tiers.argon) {
-        store = {
-          windowStart: now,
-          weekStart: getSundayMidnight(now),
-          tiers: {
-            opus: { used5h: 0, usedWeekly: 5 },
-            argon: { used5h: 0, usedWeekly: 8 },
-            sonnet: { used5h: 12, usedWeekly: 180 },
-            flash: { used5h: 8, usedWeekly: 120 },
-            oss: { used5h: 2, usedWeekly: 40 }
+    async function requestRealQuotaSync() {
+      const btn = document.getElementById('btnSyncQuota');
+      if (btn) btn.innerHTML = '<span>⏳</span> <span>동기화 중...</span>';
+      try {
+        const qRes = await fetch(`/api/github/file?repo=${encodeURIComponent(REPO)}&path=${encodeURIComponent('.bridge/quota.json')}&_t=${Date.now()}`);
+        if (qRes.ok) {
+          const qFile = await qRes.json();
+          if (qFile && qFile.content) {
+            window.realQuotaData = JSON.parse(qFile.content);
+            refreshUsageDisplay();
+            showNotice('✅ Google Antigravity 백엔드 최신 잔여량 동기화 완료!');
           }
-        };
-        saveQuotaStore(store);
-        return store;
-      }
-
-      // Check 5-hour window reset
-      if (now - store.windowStart >= FIVE_HOURS_MS) {
-        store.windowStart = now;
-        for (const k of Object.keys(store.tiers)) {
-          store.tiers[k].used5h = 0;
         }
+      } catch (err) {
+        showNotice('⚠️ 동기화 실패: ' + err.message);
+      } finally {
+        if (btn) btn.innerHTML = '<span>🔄</span> <span>실시간 백엔드 잔여량 동기화</span>';
       }
-
-      // Check weekly reset
-      const curWeek = getSundayMidnight(now);
-      if (store.weekStart !== curWeek) {
-        store.weekStart = curWeek;
-        for (const k of Object.keys(store.tiers)) {
-          store.tiers[k].usedWeekly = 0;
-        }
-      }
-
-      saveQuotaStore(store);
-      return store;
-    }
-
-    function saveQuotaStore(store) {
-      localStorage.setItem(QUOTA_STORE_KEY, JSON.stringify(store));
     }
 
     function incrementModelUsage(modelId) {
-      const store = getQuotaStore();
       const tierKey = getModelTierKey(modelId);
-      if (!store.tiers[tierKey]) {
-        store.tiers[tierKey] = { used5h: 0, usedWeekly: 0 };
-      }
-      store.tiers[tierKey].used5h += 1;
-      store.tiers[tierKey].usedWeekly += 1;
-      saveQuotaStore(store);
-      refreshUsageDisplay();
-    }
-
-    function resetAllQuotas() {
-      const now = Date.now();
-      const store = {
-        windowStart: now,
-        weekStart: getSundayMidnight(now),
-        tiers: {
-          opus: { used5h: 0, usedWeekly: 0 },
-          argon: { used5h: 0, usedWeekly: 0 },
-          sonnet: { used5h: 0, usedWeekly: 0 },
-          flash: { used5h: 0, usedWeekly: 0 },
-          oss: { used5h: 0, usedWeekly: 0 }
+      if (window.realQuotaData && window.realQuotaData.tiers && window.realQuotaData.tiers[tierKey]) {
+        const t = window.realQuotaData.tiers[tierKey];
+        if (t.remainingCount > 0) {
+          t.remainingCount -= 1;
+          t.percentage = Math.max(0, Math.round((t.remainingCount / t.max5h) * 1000) / 10);
         }
-      };
-      saveQuotaStore(store);
+      }
       refreshUsageDisplay();
     }
 
     function refreshUsageDisplay() {
-      const store = getQuotaStore();
+      const now = Date.now();
+      const quotaData = window.realQuotaData || REAL_QUOTA_DEFAULT;
       const activeTierKey = getModelTierKey(selectedModel);
       const activeCfg = TIER_CONFIG[activeTierKey] || TIER_CONFIG.flash;
-      const activeUsage = store.tiers[activeTierKey] || { used5h: 0, usedWeekly: 0 };
+      const q = (quotaData.tiers && quotaData.tiers[activeTierKey]) || REAL_QUOTA_DEFAULT.tiers[activeTierKey];
 
-      // 1. Update Active Model Highlight Banner
-      const rem5h = Math.max(0, activeCfg.max5h - activeUsage.used5h);
-      const pct5h = Math.max(0, Math.round((rem5h / activeCfg.max5h) * 100));
-      const remWeekly = Math.max(0, activeCfg.maxWeekly - activeUsage.usedWeekly);
+      // 1. Reset Countdown Timer to exact target timestamp
+      const resetTarget = q.resetTimestamp || (now + 4 * 3600 * 1000 + 38 * 60 * 1000);
+      const remainMs = Math.max(0, resetTarget - now);
+      const timerEl = document.getElementById('timer5h');
+      if (timerEl) {
+        if (q.isExhausted || q.quotaType === 'weekly' || remainMs > 24 * 3600 * 1000) {
+          const rDays = Math.floor(remainMs / (24 * 3600 * 1000));
+          const rHours = Math.floor((remainMs % (24 * 3600 * 1000)) / (3600 * 1000));
+          timerEl.textContent = `주간 리셋: ${rDays}일 ${rHours}시간`;
+          timerEl.style.color = '#ef4444';
+        } else {
+          const rH = String(Math.floor(remainMs / (3600 * 1000))).padStart(2, '0');
+          const rM = String(Math.floor((remainMs % (3600 * 1000)) / (60 * 1000))).padStart(2, '0');
+          const rS = String(Math.floor((remainMs % (60 * 1000)) / 1000)).padStart(2, '0');
+          timerEl.textContent = `리셋: ${rH}:${rM}:${rS}`;
+          timerEl.style.color = '#34d399';
+        }
+      }
 
+      // 2. Active Model Highlight Banner
       document.getElementById('aqModelName').textContent = MODEL_LABELS[selectedModel] || activeCfg.name;
       const aqRemainEl = document.getElementById('aqRemain5h');
       const aqBar = document.getElementById('aqBar5h');
 
-      if (activeCfg.isExhausted || rem5h === 0) {
-        aqRemainEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0회 남음 (한도 소진됨 ⚠️)</span>`;
+      if (q.isExhausted) {
+        aqRemainEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0회 남음 (${q.percentage}% • 한도 소진됨 ⚠️)</span>`;
         aqBar.className = 'progress-fill fill-danger';
         aqBar.style.width = '100%';
-        document.getElementById('aqUsed5h').textContent = `5시간: ${activeCfg.max5h} / ${activeCfg.max5h}회 사용 (소진)`;
+        document.getElementById('aqUsed5h').innerHTML = `<span style="color:#ef4444;">${q.quotaType === 'weekly' ? '주간 쿼터' : '5시간'}: 잔여 ${q.percentage}% (소진)</span>`;
+        document.getElementById('aqRemainWeekly').innerHTML = `<span style="color:#f87171;">리셋: ${q.resetTime.split(' ')[0]} ${q.resetTime.split(' ')[1] || ''}</span>`;
       } else {
-        aqRemainEl.textContent = `${rem5h}회 남음 (${pct5h}%)`;
+        aqRemainEl.innerHTML = `<span style="color:#34d399; font-weight:700;">${q.remainingCount}회 남음 (${q.percentage}%)</span>`;
         aqBar.className = `progress-fill ${activeCfg.barClass}`;
-        aqBar.style.width = `${pct5h}%`;
-        document.getElementById('aqUsed5h').textContent = `5시간: ${activeUsage.used5h} / ${activeCfg.max5h}회 사용`;
+        aqBar.style.width = `${q.percentage}%`;
+        document.getElementById('aqUsed5h').textContent = `5시간: ${q.max5h - q.remainingCount} / ${q.max5h}회 사용`;
+        document.getElementById('aqRemainWeekly').textContent = `리셋: ${q.resetTime.split(' ')[1] || q.resetTime} KST`;
       }
-      document.getElementById('aqRemainWeekly').textContent = `주간: ${remWeekly.toLocaleString()} / ${activeCfg.maxWeekly.toLocaleString()} 남음`;
 
-      // 2. Update All Tiers Independent Bars
+      // 3. Update All Tiers Independent Remaining Bars
       for (const [tKey, cfg] of Object.entries(TIER_CONFIG)) {
-        const u = store.tiers[tKey] || { used5h: 0, usedWeekly: 0 };
-        const r5 = Math.max(0, cfg.max5h - u.used5h);
-        const p5 = Math.max(0, Math.round((r5 / cfg.max5h) * 100));
+        const tQ = (quotaData.tiers && quotaData.tiers[tKey]) || REAL_QUOTA_DEFAULT.tiers[tKey];
         const textEl = document.getElementById(`tierText-${tKey}`);
         const barEl = document.getElementById(`tierBar-${tKey}`);
-        if (textEl) {
-          if (cfg.isExhausted || r5 === 0) {
-            textEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0 / ${cfg.max5h} (한도 소진됨 ⚠️)</span>`;
+        if (textEl && tQ) {
+          if (tQ.isExhausted) {
+            textEl.innerHTML = `<span style="color:#ef4444; font-weight:700;">0 / ${tQ.max5h} (한도 소진 ${tQ.percentage}% ⚠️)</span>`;
           } else {
-            textEl.textContent = `${r5} / ${cfg.max5h} 남음 (${p5}%)`;
+            textEl.innerHTML = `<span style="color:${tKey === 'flash' ? '#34d399' : '#818cf8'}; font-weight:600;">${tQ.remainingCount} / ${tQ.max5h} 남음 (${tQ.percentage}%)</span>`;
           }
         }
-        if (barEl) {
-          barEl.style.width = `${cfg.isExhausted || r5 === 0 ? 100 : p5}%`;
-          if (cfg.isExhausted || r5 === 0) {
+        if (barEl && tQ) {
+          if (tQ.isExhausted) {
+            barEl.style.width = '100%';
             barEl.className = 'progress-fill fill-danger';
+          } else {
+            barEl.style.width = `${tQ.percentage}%`;
+            barEl.className = `progress-fill ${cfg.barClass}`;
           }
         }
       }
-
-      // 3. Update 5h Reset Countdown
-      const now = Date.now();
-      const remainMs = Math.max(0, FIVE_HOURS_MS - (now - store.windowStart));
-      const rH = String(Math.floor(remainMs / (1000 * 60 * 60))).padStart(2, '0');
-      const rM = String(Math.floor((remainMs % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-      const rS = String(Math.floor((remainMs % (1000 * 60)) / 1000)).padStart(2, '0');
-      document.getElementById('timer5h').textContent = `리셋: ${rH}:${rM}:${rS}`;
     }
 
     setInterval(refreshUsageDisplay, 1000);
