@@ -1,12 +1,14 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_check_quota_1794355900925",
     "author": "User",
     "sessionId": "bc73f54f-c2e8-497a-a4ad-4a97dc1ffea2",
     "model": "gemini-3.8-flash",
-    "modelLabel": "\u26a1 Gemini 3.8 Flash",
-    "content": "\ud130\ubbf8\ub110\uc5d0\uc11c /home/syk4441/.local/bin/agy --help \ud639\uc740 agy models \uba85\ub839\uc5b4\ub97c \uc2e4\ud589\ud558\uace0, ~/.gemini/antigravity-cli/ \uc548\uc758 \ud30c\uc77c\ub4e4(\ud1a0\ud070, \ucffc\ud130, \uce90\uc2dc \ub4f1)\uc744 \ud655\uc778\ud574\uc11c \ud604\uc7ac agy CLI\uc758 \uc2e4\uc81c \ubaa8\ub378\ubcc4 \ucffc\ud130 \ubc0f \uc794\uc5ec\ub7c9 \uc815\ubcf4\ub97c \ud655\uc778\ud574\uc11c \ucd9c\ub825\ud574\uc918",
+    "modelLabel": "⚡ Gemini 3.8 Flash",
+    "content": "터미널에서 /home/syk4441/.local/bin/agy --help 혹은 agy models 명령어를 실행하고, ~/.gemini/antigravity-cli/ 안의 파일들(토큰, 쿼터, 캐시 등)을 확인해서 현재 agy CLI의 실제 모델별 쿼터 및 잔여량 정보를 확인해서 출력해줘",
     "timestamp": 1794355900925
-  }
+  },
+  "receivedAt": 1794355903641
 }
