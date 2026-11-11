@@ -1,5 +1,6 @@
 {
-  "status": "pending",
+  "status": "processing",
+  "processingSession": "Firebase-VM (agy-server / 35.188.210.15)",
   "request": {
     "id": "req_stop_bridge_1794361421956",
     "author": "User",
@@ -8,5 +9,6 @@
     "modelLabel": "⚡ Gemini 3.8 Flash",
     "content": "터미널에서 systemctl --user stop firebase-vm-bridge.service && systemctl --user disable firebase-vm-bridge.service 명령어를 실행해서 브릿지 서비스를 안전하게 정지 및 비활성화해줘. 그리고 git post-commit 훅이 있다면 그것도 삭제해줘.",
     "timestamp": 1794361421956
-  }
+  },
+  "receivedAt": 1794361425998
 }
