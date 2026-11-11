@@ -1,0 +1,67 @@
+{
+  "updatedAt": 1794356026003,
+  "source": "Antigravity CloudCode API (fetchAvailableModels)",
+  "vm": "Firebase-VM (agy-server / 35.188.210.15)",
+  "tiers": {
+    "opus": {
+      "name": "👑 Claude 3 Opus",
+      "percentage": 0.9,
+      "remainingCount": 0,
+      "max5h": 25,
+      "maxWeekly": 250,
+      "isExhausted": true,
+      "statusLabel": "한도 소진됨 (주간 쿼터 ⚠️)",
+      "resetTime": "2026-11-15 15:54:28 KST",
+      "resetTimestamp": 1794725668000,
+      "quotaType": "weekly"
+    },
+    "sonnet": {
+      "name": "⚡ Claude Sonnet 3.7 / 5.5",
+      "percentage": 0.9,
+      "remainingCount": 0,
+      "max5h": 60,
+      "maxWeekly": 800,
+      "isExhausted": true,
+      "statusLabel": "한도 소진됨 (주간 쿼터 ⚠️)",
+      "resetTime": "2026-11-15 15:54:28 KST",
+      "resetTimestamp": 1794725668000,
+      "quotaType": "weekly"
+    },
+    "argon": {
+      "name": "🧠 Gemini 4 Argon",
+      "percentage": 89.9,
+      "remainingCount": 54,
+      "max5h": 60,
+      "maxWeekly": 800,
+      "isExhausted": false,
+      "statusLabel": "사용 가능 (단기 롤링 🟢)",
+      "resetTime": "2026-11-11 13:52:23 KST",
+      "resetTimestamp": 1794372743000,
+      "quotaType": "rolling"
+    },
+    "flash": {
+      "name": "⚡ Gemini 3.8 Flash",
+      "percentage": 89.9,
+      "remainingCount": 180,
+      "max5h": 200,
+      "maxWeekly": 3000,
+      "isExhausted": false,
+      "statusLabel": "초고속 여유 (추천 🟢)",
+      "resetTime": "2026-11-11 13:52:23 KST",
+      "resetTimestamp": 1794372743000,
+      "quotaType": "rolling"
+    },
+    "oss": {
+      "name": "🦙 GPT-OSS / Llama / NIM",
+      "percentage": 0.9,
+      "remainingCount": 1,
+      "max5h": 120,
+      "maxWeekly": 2000,
+      "isExhausted": true,
+      "statusLabel": "한도 소진됨 (Claude 공통 풀 ⚠️)",
+      "resetTime": "2026-11-15 15:54:28 KST",
+      "resetTimestamp": 1794725668000,
+      "quotaType": "weekly"
+    }
+  }
+}
